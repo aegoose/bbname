@@ -1,0 +1,30 @@
+.row
+  .col-md-12.horz-form
+    = simple_form_for [:backend, @tag_key], wrapper: :horizontal_form, data:{ toggle: :validator, remote: true, type: :json, reloadpage: true} do |f|
+      .col-md-10
+        = f.input :name, required:true
+        = f.input :catg_id, collection: [], input_html: {class: 'inp-x', required: true, data: {"ajax-select2": {url: selects_backend_catgs_path(format: :json), type: :catg, slts: "#{@tag_key.catg_id}"}, placeholder: "选择分类"} }
+      .col-md-12
+        hr/
+      .form-group.col-md-10
+        .col-sm-3
+        .col-sm-9
+          = f.button :submit, :class => 'btn btn-primary' do
+            i.fa.fa-save
+              | 保存
+    / = simple_form_for [:backend, @tag_key], wrapper: :inline_form, data:{ toggle: :validator, remote: true, type: :json, reloadpage: true} do |f|
+      dl.dl-horizontal
+        dt 关键字
+        dd
+          = f.input :name, required:true, input_html: {class: 'inp-x'}
+        dt 所属类别
+        dd
+          = f.input :catg_id, collection: [], input_html: {class: 'inp-x', required: true, data: {"ajax-select2": {url: selects_backend_catgs_path(format: :json), type: :catg, slts: "#{@tag_key.catg_id}"}, placeholder: "选择分类"} }
+        / dt 序号
+        / dd= f.input :seq, input_html: {class: 'inp-x'}
+        hr/
+        dt &nbsp;
+        dd
+          = f.button :submit, :class => 'btn btn-primary' do
+            i.fa.fa-save
+              | 保存

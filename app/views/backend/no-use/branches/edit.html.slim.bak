@@ -1,0 +1,21 @@
+= content_for :title
+  = t("edit")
+  = t('models.branch')
+  strong = "\"#{@branch.name}\""
+= render 'form'
+/ .row
+/   .col-xs-8
+/     .box.box-primary
+/       .box-header.with-border
+/         h3
+/           =t('edit')
+/           =t('models.branch')
+/           | &nbsp; &nbsp;
+/           = link_to backend_branch_path(@branch), class: 'btn btn-primary btn-sm' do
+/             i.fa.fa-file-o
+/               =t('show')
+/           | &nbsp;
+/           = link_to backend_branches_path, class: 'btn btn-default btn-sm' do
+/             i.fa.fa-chevron-left
+/               = t('back')
+/       = render 'form'

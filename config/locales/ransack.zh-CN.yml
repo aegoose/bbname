@@ -1,0 +1,42 @@
+# Files in the config/locales directory are used for internationalization
+# and are automatically loaded by Rails. If you want to use locales other
+# than English, add the necessary files in this directory.
+#
+# To use the locales, use `I18n.t`:
+#
+#     I18n.t 'hello'
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t('hello') %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more, please read the Rails Internationalization guide
+# available at http://guides.rubyonrails.org/i18n.html.
+# see https://github.com/svenfuchs/rails-i18n/
+zh-CN:
+  ransack:
+    asc: '升序' # ascending
+    desc: '降序' # descending
+    predicates:
+      cont: '包括' # contains
+      not_cont: '不包括' # not contains
+      start: '开头' # starts with
+      end: '结尾' # ends with
+      gt: '大于' # greater than
+      lt: '小于' # less than
+    models:
+      customer: '客户'
+      customer_product: '客户产品'
+    attributes:
+      customer:
+        id: 编号
+        name: 名
+      customer_product:
+        classify: 分类
+

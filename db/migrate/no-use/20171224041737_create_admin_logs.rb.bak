@@ -1,0 +1,16 @@
+class CreateAdminLogs < ActiveRecord::Migration[5.1]
+  def change
+    create_table :admin_logs do |t|
+      t.string :classify, limit: 50
+      t.string :title
+      t.string :content
+      t.text :result
+      t.string :process, limit: 50
+      t.datetime :ctrl_at
+      t.integer :admin_id
+
+      t.timestamps
+    end
+    add_index :admin_logs, :admin_id
+  end
+end

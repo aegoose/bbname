@@ -1,0 +1,12 @@
+<%- table_path_str = controller_class_path.join("_") + "_" + singular_table_name -%>
+.row
+  .col-xs-8
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t("new")
+          = t('models.<%= singular_table_name %>')
+          | &nbsp;&nbsp;
+          = link_to <%= table_path_str.pluralize %>_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+      = render 'form'

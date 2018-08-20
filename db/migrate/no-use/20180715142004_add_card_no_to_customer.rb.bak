@@ -1,0 +1,5 @@
+class AddCardNoToCustomer < ActiveRecord::Migration[5.1]
+  def change
+    add_column :customers, :card_no, :string, limit: 100
+  end
+end

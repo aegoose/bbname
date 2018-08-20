@@ -1,0 +1,26 @@
+# coding: utf-8
+#
+module ApiCustomerErrors
+  include ApiExceptions
+
+  self.class_error_code = 50
+  define_error_class 'FinancialProductUpdateError', 80, '更新失败%s'
+  define_error_class 'FinancialProductDestroyError', 81, '更新失败%s'
+
+
+  define_error_class 'CustomerProductUpdateError', 80, '更新失败%s'
+  define_error_class 'CustomerProductDestroyError', 81, '更新失败%s'
+  define_error_class 'CustomerNotFound', 82, '找到不用户(%s)'
+  define_error_class 'CustomerUpdateError', 83, '更新失败%s'
+  define_error_class 'CustomerDestroyError', 84, '删除失败%s'
+
+
+  define_error_class 'UploadFileError', 91, '上传文件失败%s'
+  define_error_class 'ImportFileError', 92, '导入出错%s'
+  define_error_class 'EmptyImportFile', 93, '需要上传文件'
+
+  # define_error_class 'CustomerNotActived', -1, '用户(%s)未激活'
+  # define_error_class 'CustomerNotFound', 10, '找不到用户(%s)'
+  # define_error_class 'CustomerUpdateError', 20, '更新失败: %s'
+  # define_error_class 'CustomerDestroyError', 8888, '删除失败: %s'
+end

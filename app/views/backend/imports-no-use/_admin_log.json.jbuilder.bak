@@ -1,0 +1,30 @@
+# json.extract! admin_log, :id, :classify, :title, :content, :result, :ctrl_at
+json.admin_log do
+  json.id @admin_log.id
+  json.classify @admin_log.classify
+  json.title @admin_log.title
+  json.process do
+    pr = @admin_log.process_array
+    json.raw_counts pr
+    json.percents @admin_log.process_percents
+    json.done pr[0]
+    json.total pr[1]
+    json.succs pr[2]
+    json.fails pr[3]
+  end
+  json.result @admin_log.result
+  json.content @admin_log.content unless @admin_log.content.blank?
+  json.ctrl_at @admin_log.ctrl_at
+  unless @admin_log.logable_id.blank?
+    json.logable do
+      json.id @admin_log.logable_id
+      json.type @admin_log.logable_type
+    end
+  end
+  json.attachment_path @admin_log.attachment.attachment.url
+  json.status @admin_log.status
+  # json.status do
+  #   json.value @admin_log.status
+  #   json.text @admin_log.status.text
+  # end
+end

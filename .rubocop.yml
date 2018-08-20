@@ -1,0 +1,38 @@
+AllCops:
+  Include:
+    - '**/**.rb'
+    - '**/**.slim'
+    - '**/Rakefile'
+    - '**/config.ru'
+  # Exclude:
+    # - 'db/**/*'
+    # - 'config/**/*'
+    # - 'script/**/*'
+    # - !ruby/regexp /old_and_unused\.rb$/
+
+Style/PerlBackrefs:
+  AutoCorrect: true
+# Style/HashSyntax:
+#   AutoCorrect: true
+# Style/Lambda:
+#   AutoCorrect: true
+# Style/UnlessElse:
+#   AutoCorrect: true
+# Style/WhenThen:
+#   AutoCorrect: true
+# Style/UnneededCapitalW:
+#   AutoCorrect: true
+# Style/StringLiterals:
+#   AutoCorrect: true
+# Style/StringHashKeys:
+#   AutoCorrect: true
+# Style/StringLiteralsInInterpolation:
+#   AutoCorrect: true
+# Lint/DefEndAlignment:
+#   Enabled: true
+# Lint/AmbiguousBlockAssociation
+#   Enabled: true
+# Lint/AmbiguousOperator
+#   Enabled: true
+# other configuration
+# ...

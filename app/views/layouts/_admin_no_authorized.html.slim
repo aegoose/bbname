@@ -1,0 +1,5 @@
+- if flash.present? && flash[:user_not_authorized].present?
+  .message-center.container
+    .drop-message*{class: :danger}
+      .message-content= flash[:user_not_authorized]
+      a.close: i.fa.fa-times

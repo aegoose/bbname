@@ -1,0 +1,38 @@
+-content_for :title
+  = t('models.branch')
+  | 管理
+
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.branch')
+          = t('list')
+          | &nbsp;&nbsp;
+        .box-tools.right-bottom.query
+          .query-item.pull-left
+            = link_to new_backend_branch_path, class: 'btn btn-primary btn-sm', data: {modal: true} do
+              i.fa.fa-plus-square
+                = t('new')
+                = t('models.branch')
+      .box-body.table-wrapper.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              th = t('activerecord.attributes.branch.distinct_id')
+              th = t('activerecord.attributes.branch.name')
+              th = t('activerecord.attributes.branch.branch_no')
+              th = t('th_links')
+          tbody
+          - @branches.each do | branch |
+            tr
+              td = branch.distinct&.name
+              / td = link_to branch.name, backend_branch_path(branch)
+              td = branch.name
+              td = branch.branch_no
+              td
+                / = link_to t('show'), backend_branch_path(branch)
+                = link_to t('edit'), edit_backend_branch_path(branch), data: {modal: true}
+                | &nbsp;|&nbsp;
+                = link_to t('destroy'), backend_branch_path(branch), method: :delete, data: { confirm: '确定要删除吗' }

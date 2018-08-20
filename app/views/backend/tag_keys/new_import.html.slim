@@ -1,0 +1,23 @@
+- content_for :title
+  = t('models.tag_key')
+  | 管理
+.row
+  .col-md-12
+    = render 'layouts/error_tip'
+  .col-md-12
+    .box.box-primary.horz-form
+      .box-header.with-border
+        h3 批量导入
+      = simple_form_for @tag_key, url: import_backend_tag_key_path(@tag_key), wrapper: :horizontal_form, html: { method: :put }, data: {toggle: :validator} do |f|
+        .box-body.with-border
+          .col-md-10
+            = f.input :catg_id, collection: [], required:true, input_html: {class: 'inp-x', required: true, data: {"ajax-select2": {url: selects_backend_catgs_path(format: :json), type: :catg, slts: "#{@tag_key.catg_id}"}, placeholder: "选择分类"} }
+            = f.input :name, as: :text, required:true, hint:"注意：按空格和换行区分每一个关键词, 自动忽略已经存在的关键词", input_html: { "class": "mh300" }
+            / = f.input :name, required:true, 
+        .box-footer
+          .form-group.col-md-10
+            .col-sm-3
+            .col-sm-9
+              = f.button :submit, :class => 'btn btn-primary' do
+                i.fa.fa-save
+                  | 保存

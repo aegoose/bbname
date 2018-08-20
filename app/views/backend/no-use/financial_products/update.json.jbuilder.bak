@@ -1,0 +1,11 @@
+if @isError
+  json.code 1
+  json.message "更新失败"
+  json.data []
+else
+  json.code 0
+  json.message "更新成功"
+  json.data do
+    json.partial! "financial_product", financial_product: @financial_product
+  end
+end

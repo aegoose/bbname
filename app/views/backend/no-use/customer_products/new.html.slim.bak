@@ -1,0 +1,15 @@
+= content_for :title
+  = t("new")
+  = t('models.customer_product')
+= render 'form'
+/ .row
+/   .col-xs-8
+/     .box.box-primary
+/       .box-header.with-border
+/         h3
+/           = t("new")
+/           = t('models.customer_product')
+/           | &nbsp;&nbsp;
+/           = link_to backend_customer_products_path, class: 'btn btn-default btn-sm' do
+/             span.fa.fa-chevron-left=t('back')
+/       = render 'form'

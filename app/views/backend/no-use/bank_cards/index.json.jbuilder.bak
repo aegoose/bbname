@@ -1,0 +1,1 @@
+json.array! @cards, partial: 'bank_cards/card', as: :card

@@ -1,0 +1,132 @@
+# 客户导入处理
+class ImportCustomersWorker
+  include Sidekiq::Worker
+  sidekiq_options retry: false, queue: :critical, backtrace: 5
+
+  @@jobs = {}
+
+  def job_key
+    "#{@log_id}"
+  end
+
+  # def ts
+  #   "[#{Time.now.strftime('%Y-%m-%d %H:%I')}] "
+  # end
+
+  # worker处理函数
+  def perform(log_id)
+    # Do something
+    # 读数数，获取得文件
+    # 读文件
+    # 启动导入
+    #
+    @log_id = log_id
+
+    admlog = AdminLog.find_by_id(@log_id)
+
+    # FIXME: 存在，并且redis不存在，则执行
+
+    if admlog.blank?
+      logger.warn "[#{job_key}] 导入失败，#{job_key}为空记录, 不存在"
+      return
+    end
+
+    # FIXME
+
+    admfile = admlog.attachment.attachment.file
+    unless admfile.exists?
+      logger.warn "[#{job_key}] 导入失败，找不到导入数据的文件: #{admfile.path}"
+      return
+    end
+
+    jtime = @@jobs[@log_id]
+    ntime = Time.now.to_i
+    if jtime && ntime - jtime < 3600 # 未超过1个小时
+      logger.warn "[#{job_key}] 任务已存，无需要得复导入"
+      return
+    end
+
+    @@jobs[@log_id ] = ntime
+    import(admfile, admlog)
+    @@jobs.delete(@log_id )
+  end
+
+  private
+
+  # 按超级管理员/镇区管理员的导入
+  def import(file, admlog)
+
+    # 要自动查找和创建管理员用户
+
+    spreadsheet = Roo::Spreadsheet.open(file.path, { csv_options: { encoding: Encoding::GB2312 } })# open_spreadsheet(file)
+    h_num = 1
+    header = spreadsheet.row(1)
+
+    if header.length != 15
+      admlog.add_fail_msg!(0, "导入权限有误, 导入文档格式不正确！")
+      logger.error "[#{job_key}] 导入文档格式不正确(#{header&.join(',')})"
+      return
+    end
+
+    # 去掉多少行数据
+    if (h1 =header.reject(&:blank?)).length == 1
+      h2 = spreadsheet.row(2)
+      h3 = spreadsheet.row(3)
+      header = header.length.times.map do |i|
+        a = h2[i]
+        a = h3[i] if h3[i].blank?
+        a
+      end
+      h_num = 3
+    end
+
+    # 镇区  网点  网点机构号 居民姓名  性别  证件号 联系电话  小区/村名 联系地址  卡号  定期  保险  理财  其他标签  所属客户经理
+
+    last_row = spreadsheet.last_row
+    done, total, succs, fails = admlog.process_array
+    total = last_row - h_num
+    begin_row = done + h_num
+
+    if done >= total
+      logger.info "[#{job_key}] 导入处理已完成：done:#{done}, total:#{total}, succs:#{succs}, fails:#{fails}, begin_row:#{begin_row}, last_row:#{last_row}"
+      admlog.update_attribute(:status, :done)
+      return
+    end
+
+    curr_adm = admlog.admin
+    if curr_adm.blank?
+      admlog.add_fail_msg!(done, "导入权限有误, 找不到当前导入人！")
+      logger.error "[#{job_key}] 导入权限有误, 找不到导入人(#{admlog.to_json})"
+      return
+    end
+
+    admlog.ctrl_at = Time.now
+    # admlog.update_fail_result('')
+
+    (begin_row..last_row).each do |i|
+      row = spreadsheet.row(i)
+      begin
+        cus, err_str = ImportUtil.import_cus_by_row!(false, curr_adm, admlog, row)
+        succs += 1
+        if err_str.blank?
+          logger.warn "[#{job_key}] 第#{done}条记录导入成功, 记录为#{row}"
+        else
+          logger.info "[#{job_key}] 第#{done}条记录导入成功，但产品有误[#{err_str}], 记录为#{row}"
+        end
+      rescue => e
+        fails += 1
+        admlog.append_fail_msg(done, row, e.message)
+        logger.warn "[#{job_key}] 第#{done}条记录导入失败(#{e.message}), 记录为#{row}, error: #{e.backtrace[0..5].join('========')}"
+      end
+      admlog.up_process(done, total, succs, fails)
+      admlog.save
+      done += 1
+      # sleep(1.0)
+    end
+
+    admlog.append_result("上传处理完成, #{admlog.process_msg}")
+    admlog.status = :done
+    admlog.save
+  end
+
+end

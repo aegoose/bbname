@@ -1,0 +1,20 @@
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.branch')
+          = t('info')
+          | &nbsp; &nbsp;
+          = link_to edit_backend_branch_path(@branch), class: 'btn btn-primary btn-sm' do
+            span.fa.fa-edit=t('edit')
+          | &nbsp;
+          = link_to backend_branches_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+      .box-body
+        dl.dl-horizontal
+          dt t(\'activerecord.attributes.%= singular_table_name %>.name\'):
+          dd= @branch.name
+          dt t(\'activerecord.attributes.%= singular_table_name %>.branch_no\'):
+          dd= @branch.branch_no
+      .box-footer

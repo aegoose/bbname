@@ -1,0 +1,49 @@
+.row
+  .col-xs-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.admin')
+          strong = "\"#{@admin.name}\""
+          = t('info')
+          | &nbsp; &nbsp;
+        .box-tools.right-bottom.query
+          / -if policy(:admin).edit?
+            = link_to edit_backend_admin_path(@admin), class: 'btn btn-primary btn-sm' do
+              span.fa.fa-edit=t('edit')
+            | &nbsp;
+          = link_to backend_admins_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+          | &nbsp; &nbsp;
+
+      .box-body.small-edit
+        dl.dl-horizontal
+          dt =t('activerecord.attributes.admin.name')
+          dd = @admin.name
+          dt =t('activerecord.attributes.admin.email')
+          dd = @admin.email
+          dt =t('activerecord.attributes.admin.username')
+          dd = @admin.username
+          dt =t('activerecord.attributes.admin.role')
+          dd = @admin.role&.text
+          dt =t('activerecord.attributes.admin.branch_id')
+          dd = @admin.branch&.name
+          dt =t('activerecord.attributes.admin.status')
+          dd = @admin.status.text
+          dt =t('activerecord.attributes.admin.created_at')
+          dd = @admin.created_at
+          hr/
+          dt =t('activerecord.attributes.admin.current_sign_in_at')
+          dd
+            = l @admin.current_sign_in_at, format: :cn_YmdHMS if @admin.current_sign_in_at
+          dt =t('activerecord.attributes.admin.last_sign_in_at')
+          dd
+            = l @admin.last_sign_in_at, format: :cn_YmdHMS if @admin.last_sign_in_at
+          dt =t('activerecord.attributes.admin.sign_in_count')
+          dd = @admin.sign_in_count
+          dt =t('activerecord.attributes.admin.current_sign_in_ip')
+          dd = @admin.current_sign_in_ip
+          dt =t('activerecord.attributes.admin.last_sign_in_ip')
+          dd = @admin.last_sign_in_ip
+
+      .box-footer

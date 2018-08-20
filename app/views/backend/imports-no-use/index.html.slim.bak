@@ -1,0 +1,77 @@
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          |导入日志列表
+          = t('list')
+          | &nbsp;&nbsp;
+        .box-tools.right-bottom.query
+          / = link_to new_backend_admin_log_path, class: 'btn btn-primary btn-sm' do
+            i.fa.fa-plus-square
+              = t('new')
+              = t('models.admin_log')
+          - if policy(:admin_log).new_customer?
+            = link_to new_customer_backend_imports_path, class: 'btn btn-primary btn-sm' do
+              i.fa.fa-plus-square
+                | 导入客户
+            | &nbsp;&nbsp;
+          - if policy(:admin_log).new_financial?
+            = link_to new_financial_backend_imports_path, class: 'btn btn-primary btn-sm' do
+              i.fa.fa-plus-square
+                | 导入理财产品
+
+        .query.clearfix
+          = simple_form_for :query, url: backend_imports_path, method: :get, wrapper: :inline_form do |f|
+            .query-item.pull-left.inp-m
+              = f.input :classify, collection:AdminLog.import_options, placeholder: qr_t("query.import.by_type"), include_blank: false, selected: @qr[:classify]
+            .query-item.pull-left.inp-m
+              = f.input :status, collection:AdminLog.status.options, placeholder: qr_t("query.import.by_status"), include_blank: '选择状态', selected: @qr[:status]
+            / 按时间查询
+      .box-body.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              th ID
+              th = t('activerecord.attributes.admin_log.classify')
+              th = t('activerecord.attributes.admin_log.title')
+              th = t('activerecord.attributes.admin_log.attachment')
+              th = t('activerecord.attributes.admin_log.process')
+              / th = t('activerecord.attributes.admin_log.content')
+              / th = t('activerecord.attributes.admin_log.result')
+              th = t('activerecord.attributes.admin_log.ctrl_at')
+              th = t('activerecord.attributes.admin_log.status')
+              th = t('th_links')
+          tbody
+          - @admin_logs.each do | admin_log |
+            tr
+            td= admin_log.id
+            td= admin_log.classify.text
+            td
+              =link_to admin_log.title, backend_import_path(admin_log)
+            td
+              = link_to admin_log.attachment.file_name, admin_log.attachment.attachment_url, html:{target: "_blank" }
+            td = admin_log.process_msg
+            / td = admin_log.content
+            / td= admin_log.result
+            td= l(admin_log.ctrl_at, format: :cn_Ymd) unless admin_log.ctrl_at.blank?
+            td= admin_log.status.text
+            td
+              / FIXME: 不同的状态有不同的操作
+              - if policy(admin_log).do_process? && admin_log.can_process?
+                = link_to '继续导入', do_process_backend_import_path(admin_log), method: :post, class: 'btn btn-sm btn-warning', data: {remote:true, confirm: '确定要继续上次导入处理操作吗?' }
+              - if policy(admin_log).do_reset? && admin_log.can_reset?
+                = link_to '重置', do_reset_backend_import_path(admin_log), method: :post, class: 'btn btn-sm btn-warning', data: {remote:true, confirm: '确定重新执行导入操作吗?' }
+              - elsif policy(admin_log).import_show?
+                = link_to t('show'), backend_import_path(admin_log)
+              / = link_to t('show'), backend_admin_log_path(admin_log)
+              / | &nbsp;|&nbsp;
+              / = link_to t('edit'), edit_backend_admin_log_path(admin_log)
+              / | &nbsp;|&nbsp;
+              /= link_to t('destroy'), backend_admin_log_path(admin_log), method: :delete, data: { confirm: '确定要删除吗', remote: true}
+      .box-footer
+        .paging
+          =paginate @admin_logs
+          = page_entries_info @admin_logs
+
+

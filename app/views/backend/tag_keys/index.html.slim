@@ -1,0 +1,55 @@
+-content_for :title
+  = t('models.tag_key')
+  | 管理
+
+.row
+  .col-xs-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.tag_key')
+          = t('list')
+          | &nbsp;&nbsp;
+
+        .box-tools.right-bottom.query
+          = simple_form_for :query, url: backend_tag_keys_path, method: :get, wrapper: :inline_form do |f|
+            - if policy(:tag_key).import?
+              .query-item.pull-left
+                = link_to import_backend_tag_keys_path(catg_id: @qr[:catg_id]), class: 'btn btn-sm btn-primary' do
+                  i.fa.fa-upload
+                    | 批量导入
+            - if policy(:tag_key).new?
+              .query-item.pull-left
+                = link_to new_backend_tag_key_path(catg_id: @qr[:catg_id]), class: 'btn btn-sm btn-primary', data: {modal: true} do
+                  i.fa.fa-plus-square
+                    = t('new')
+                    = t('models.tag_key')
+            .query-item.pull-left.inp-m
+              = f.input :key, placeholder: qr_t("query.tag_key.by_key"), input_html: {value: @qr[:key]}
+            .query-item.pull-left.inp-m
+              = f.input :catg_id, collection:Catg.all, label_method: :name, value_method: :id, selected: @qr[:catg_id], include_blank: qr_t("query.tag_key.by_category"), input_html:{ class: "query-select"}
+
+      .box-body.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              th=t('activerecord.attributes.tag_key.catg_id')
+              th=t('activerecord.attributes.tag_key.name')
+              th=t('activerecord.attributes.tag_key.en_name')
+              th=t('activerecord.attributes.tag_key.seq')
+              th=t('activerecord.attributes.tag_key.created_at')
+              th
+          tbody
+          - @tag_keys.each do | tag_key |
+            tr
+            td = tag_key.catg.name
+            td = tag_key.name
+            td = tag_key.en_name
+            td = tag_key.seq
+            td = l tag_key.created_at, format: :cn_Ymd
+            td
+              = link_to t('edit'), edit_backend_tag_key_path(tag_key), data: {modal: true }
+              | &nbsp; | &nbsp;
+              = link_to t('destroy'), backend_tag_key_path(tag_key), method: :delete, data: { confirm: '确定要删除吗？' }
+      .box-footer
+        =paginate @tag_keys

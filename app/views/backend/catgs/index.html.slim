@@ -1,0 +1,54 @@
+-content_for :title
+  = t('models.catg')
+  | 管理
+
+.row
+  .col-xs-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.catg')
+          = t('list')
+          | &nbsp;&nbsp;
+
+        .box-tools.right-bottom.query
+          = simple_form_for :query, url: backend_catgs_path, method: :get, wrapper: :inline_form do |f|
+            - if policy(:catg).new?
+              .query-item.pull-left
+                = link_to new_backend_catg_path, class: 'btn btn-primary btn-sm' , data: {modal: true } do
+                  i.fa.fa-plus-square
+                    = t('new')
+                    = t('models.catg')
+
+            .query-item.pull-left.inp-m
+              = f.input :key, placeholder: qr_t("query.catg.by_key"), input_html: {value: @qr[:key]}
+            .query-item.pull-left.inp-m
+              = f.input :status, collection:Catg.status.options, selected: @qr[:status], include_blank: qr_t("query.catg.by_status"), input_html:{ class: "query-select"}
+
+      .box-body.table-responsive.no-padding
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              th=t('activerecord.attributes.catg.name')
+              th=t('activerecord.attributes.catg.en_name')
+              th=t('activerecord.attributes.catg.seq')
+              th=t('activerecord.attributes.catg.status')
+              th=t('th_links')
+          tbody
+          - @catgs.each do | catg |
+            tr
+              td = catg.name
+              td = catg.en_name
+              td = catg.seq
+              td = catg.status.text
+              td
+                / = link_to t('show'), backend_catg_path(catg)
+                / | &nbsp;|&nbsp;
+                - if policy(:catg).edit?
+                  = link_to t('edit'), edit_backend_catg_path(catg), data:{modal: true}
+                - if policy(:catg).destroy?
+                  | &nbsp;|&nbsp;
+                  = link_to t('destroy'), backend_catg_path(catg), method: :delete, data: { confirm: '确定要删除吗？' }
+
+      .box-footer
+        =paginate @catgs

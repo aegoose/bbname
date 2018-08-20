@@ -1,0 +1,454 @@
+# Files in the config/locales directory are used for internationalization
+# and are automatically loaded by Rails. If you want to use locales other
+# than English, add the necessary files in this directory.
+#
+# To use the locales, use `I18n.t`:
+#
+#     I18n.t 'hello'
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t('hello') %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more, please read the Rails Internationalization guide
+# available at http://guides.rubyonrails.org/i18n.html.
+# see https://github.com/svenfuchs/rails-i18n/
+zh-CN:
+  time:
+    # https://stackoverflow.com/questions/22255476/rails-formatting-date
+    formats:
+      cn_ymd: "%y年%-m月%d日"
+      cn_Ymd: "%Y年%-m月%d日"
+      cn_Md: "%m月%d日"
+      cn_md: "%-m月%-d号"
+      cn_YmdH: "%Y年%-m月%d日%k点"
+      cn_YmdHMS: "%Y年%-m月%d日%k时%M分%S秒"
+      Ymd: "%F"
+      YmdHM: "%F %H:%M"
+      YmdHMS: "%F %T"
+  date:
+    order:
+      - :year
+      - :month
+      - :day
+
+  list: '列表'
+  new: '添加'
+  back: '返回'
+  show: '查看'
+  edit: '编辑'
+  edit_password: '修改密码'
+  info: '明细'
+  close: '退出'
+  destroy: '删除'
+  lock: '锁定'
+  th_links: '操作'
+  th_create_at: '创建日期'
+  status: '状态'
+  sub_opts: '子属性'
+  input_placeholder: '输入内容 ...'
+  unknow: '未知'
+  are_you_sure: "确定要删除指定记录?"
+
+  admin:
+    add: "添加%{title}"
+    company_title: "<b>Baby</b>Name"
+    company_name: "宝宝取名"
+    backend_title: "宝宝取名工具"
+    login_title: "管理员登录"
+    register_title: "后台用户注册"
+    forget_password_title: "忘记密码"
+    account:
+      login: "登录"
+      register: "注册"
+      forget_password: "忘记密码"
+      reconfirm_email: "重发确认邮件"
+    area:
+      title_roots: '顶级'
+      title_level1: '一级'
+      title_subs: '下级'
+    customer_product:
+      outday_at: "已到期"
+      outdate: "已过期"
+      days_at: "%{days}天后到期"
+      rest_at: "还有%{days}天"
+      date_at: "%{date}到期"
+      today: "今天到期"
+    import:
+      append_level_msg: "第%{curr}条记录导入%{level}: %{msg}, 记录为%{row}"
+      append_fail_msg: "第%{curr}条记录导入失败: %{msg}, 记录为%{row}"
+      update_fail_msg: "第%{curr}条记录导入失败: %{msg}"
+      process_msg: "%{percent}%, 已处理%{done}条/共%{total}条, %{succs}条成功, %{fails}条失败"
+      process_done: "导入%{done}条, %{succs}条成功, %{fails}条失败"
+
+  models:
+    catg: '类别' # no-use
+    tag_key: '关键字' # no-use
+    area: '地区'
+    branch: '网点'
+    admin: '后台用户'
+    # customer: '客户'
+    # customer_product: '客户产品'
+    # financial_product: '理财产品'
+    # admin_log: '导入日志'
+    # bank_card: '银行卡'
+    attachment: '附件'
+
+  query:
+    by_key: '输入关键字'
+    tag_key:
+      by_category: '选择类型'
+      by_key: '输入关键字'
+      by_type: '选择属性类型'
+    catg:
+      by_status: '选择状态'
+      by_key: '输入关键字'
+    area:
+      by_key: '输入关键字'
+      by_zone: '选择分级'
+    admin:
+      by_key: '输入关键字'
+      by_branch: '选择网点'
+      by_status: '选择状态'
+    # customer:
+    #   by_key: "输入姓名/手机"
+    #   by_manager: "选择客户经理"
+    #   by_branch: '选择网点'
+    #   by_tags: '输入标签'
+    #   # by_catg: "选择网点"
+    # bank_card:
+    #   by_key: "输入卡号"
+    #   by_customer: "输入客户名"
+
+  simple_captcha:
+    placeholder: "输入验证码"
+    label: "输入验证码:"
+    refresh_button_text: "刷新"
+    message:
+      default: "验证码不正确"
+
+  activerecord:
+      models:
+        catg: "类别"
+        tag_key: "关键字"
+        admin: '后台用户'
+        area: '地区'
+        # customer: '客户'
+        # branch: '网点'
+        # financial_product: '理财产品'
+        # customer_product: '客户产品'
+        # admin_log: '导入日志'
+
+      attributes:
+        area:
+          id: '地区号'
+          name: '地区'
+          code: '编码'
+          zone: '行政级别'
+          parent_id: '上级'
+          seq: '排序'
+        catg:
+          name: "名称"
+          en_name: "编码"
+          seq: '排序'
+          status: '状态'
+        tag_key:
+          name: "名称"
+          catg_id: "所属类别"
+          en_name: "编码"
+          seq: '排序'
+          status: '状态'
+        # customer:
+        #   tags: '客户标签'
+        #   name: '客户姓名'
+        #   sex: '性别'
+        #   tel: '手机'
+        #   birthday: '生日'
+        #   email: '邮箱'
+        #   province_id: '省'
+        #   city_id: '市'
+        #   distinct_id: '区'
+        #   post_code: '邮编'
+        #   address: '地址'
+        #   remark: '备注'
+        #   created_at: '录入时间'
+        #   #
+        #   assets_level: '资产级别'
+        #   car_no: '车牌号'
+        #   hobby: '兴趣爱好'
+        #   id_card: '身份证'
+        #   card_no: '卡号'
+        #   area_zone: '小区(村)'
+        #   branch_id: '网点'
+        #   admin_id: '客户经理'
+        #   fix_product_id: '定期'
+        #   fix_due_at: '定期过期'
+        #   insure_product_id: '保险'
+        #   insure_due_at: '保险过期'
+        #   financial_product_id: '理财'
+        #   financial_due_at: '理财过期'
+        #   last_import_id: '最近导入记录'
+        #   last_import_at: '最近导入时间'
+        #   area: '地区'
+        #  # catg_id: '分类'
+        #   # priority: '重要性'
+        #   # education: '教育程度'
+        #   # interest: '兴趣爱好'
+        #   # qq: 'qq'
+        #   # wechat: '微信号'
+        #   # job_title: '职务'
+        #   # company_name: '公司名称'
+        #   # company_nature: '公司性质'
+        #   # company_scale: '公司规模'
+        #   # office_tel: '公司电话'
+        #   # office_fax: '公司传真'
+        #   # office_address: '公司地址'
+        #   # office_post_code: '公司邮编'
+        #   # source_from: '来源'
+        # customer_product:
+        #   customer_id: '所属客户'
+        #   admin_id: '客户经理'
+        #   branch_id: '网点'
+        #   classify: '分类'
+        #   begin_at: '开始日期'
+        #   end_at: '到期日期'
+        #   period: '存期(天)'
+        #   period_type: '存期'
+        #   money: '存款(万元)'
+        #   income_rate: '利率%'
+        #   status: '状态'
+        #   remark: '备注'
+        #   is_bind: '绑定用户'
+        # bank_card:
+        #   id: '编号'
+        #   card_type: '卡类型'
+        #   card_no: '卡号'
+        #   customer_id: '所属客户'
+        #   open_date: '开卡日期'
+        #   due_date: '到期日期'
+        #   bank_of_deposit: '开户行'
+        #   status: '状态'
+        # financial_product:
+        #   classify: '分类'
+        #   apply_area: '发行范围'
+        #   name: '产品名'
+        #   desc: '产品描述'
+        #   total_limit: '额度(亿)'
+        #   min_amount: '起点金(万)'
+        #   sale_rate: '销售费率%'
+        #   annual_income: '年收益%'
+        #   period: '期限(天)' # 即存期
+        #   begin_at: '开始日'
+        #   end_at: '结止日'
+        #   level: '级别' # 重要性
+        #   status: '状态'
+        #   source_from: '渠道'
+        #   remark: '备注'
+        # admin_log:
+        #   classify: '分类'
+        #   title: '标题'
+        #   content: '内容'
+        #   result: '结果'
+        #   process: '进度' # 当前数/总数
+        #   ctrl_at: '操作时间'
+        #   logable_id: '关联对象'
+        #   file: '选择文件(csv或xls)'
+        #   status: '状态'
+        #   attachment: '附件'
+        # branch:
+        #   name: '网点名'
+        #   branch_no: '网点机构号'
+        #   distinct_id: '地区'
+        admin:
+          username: '登录名'
+          name: '姓名'
+          email: '邮箱'
+          current_password: '当前密码'
+          password: '密码'
+          # encrypted_password: '确认密码'
+          password_confirmation: '确认密码'
+          phone: '手机号码'
+          tel: '办公电话'
+          fax: '传真号码'
+          qq: 'QQ号码'
+          desc: '个人业务描述'
+          status: '状态'
+          role: '角色'
+          branch_id: '网点'
+          last_sign_in_at: '最近登录'
+          sign_in_count: '登录次数'
+          current_sign_in_at: '当前登录时间'
+          created_at: '注册时间'
+          last_sign_in_ip: '最近登录ip'
+          current_sign_in_ip: '当前登录ip'
+          remember_me: '记住我'
+  navs:
+    backend:
+      home: '首页'
+      home_keys: "名字列表"
+      businesses: '业务管理'
+      systems: "后台管理"
+      admins: "用户管理"
+      admins_index: '用户列表'
+      # customers: '客户管理'
+      # customers_index: '客户列表'
+      # customers_import: '客户导入'
+      # customer_products: '客户产品管理'
+      # customer_products_index: '客户产品列表'
+      # admin_logs: '日志管理'
+      # imports: '导入管理'
+      # imports_customer: '客户导入'
+      # imports_financial: '理财产品导入'
+      # imports_show: '导入记录明细'
+      # branches: '网点管理'
+      # branches_index: '网点查询'
+      # bank_cards: '银行卡管理'
+      # bank_cards_index: '卡列表'
+      # financial_products: '理财产品管理'
+      # financial_products_index: '理财产品列表'
+      #
+      catgs: "类别管理"
+      tag_keys: "关键字管理"
+      areas: "地区管理"
+
+    profile:
+      index: '个人账号'
+      edit: "修改账号"
+      password: "修改密码"
+  enumerize:
+    area:
+      zone:
+        country: '国家'
+        province: '省份'
+        city: '城市'
+        county: '县区'
+      status:
+        actived: '激活'
+        disabled: '停用'
+    catg:
+      status:
+        actived: '激活'
+        disabled: '停用'
+    tag_key:
+      status:
+        actived: '激活'
+        disabled: '停用'
+    # admin_log:
+    #   status:
+    #     abort: '放弃'
+    #     pending: '准备中'
+    #     processing: '进行中'
+    #     done: '完成'
+    #   classify:
+    #     import: '导入客户'
+    #     export: '导出客户'
+    #     update: '更新客户'
+    #     create: '创建客户'
+    #     delete: '删除客户'
+    #     financial_import: '导入理财产品'
+    #     financial_export: '导出理财产品'
+    #     financial_create: '创建理财产品'
+    #     financial_update: '更新理财产品'
+    #     financial_delete: '删除理财产品'
+    # bank_card:
+    #   card_type:
+    #     normal: '存储卡'
+    #     credit_card: '信用卡'
+    #   status:
+    #     disabled: '不可用'
+    #     expired: '过期'
+    #     inactive: '未激活'
+    #     actived: '可用'
+    # financial_product:
+    #   status:
+    #     disabled: '禁用'    # -3
+    #     expired: '过期'     # -2
+    #     inactive: '未激活'  # -1
+    #     pending: '未开始'   # 0
+    #     actived: '进行中'   # 1
+    #   apply_area:
+    #     china: '全国'
+    #     guangdong: '广东省'
+    #     dongguan: '东莞市'
+    #   source_from:
+    #     all: '所有渠道'
+    #     electron: '电子渠道'
+    #     phone_bank: '手机银行'
+    #     elec_night: '电子渠道夜市'
+    #   level:
+    #     importance: '重要'
+    #     normal: '普通'
+    # customer_product:
+    #   status:
+    #     disabled: '禁用'   # -2
+    #     expired: '过期'    # -1
+    #     inactive: '未激活' # 0
+    #     actived: '进行中'  # 1
+    #   classify:
+    #     fix: '定期'
+    #     insure: '保险'
+    #     financial: '理财'
+    #   period_type:
+    #     year: '年'
+    #     month: '月'
+    #     day: '天'
+    #     due_date: '截止日期'
+    #   is_bind:
+    #     replace: '设置当前产品'
+    #     skip: '不设置'
+    # customer:
+    #   sex:
+    #     boy: '男士'
+    #     girl: '女士'
+    #   assets_level:
+    #     normal: '普通人'
+    #     welloff: '小康'
+    #     rich: '资金充足'
+    #     million: '百万'
+    #     billion: '亿万'
+    #   # priority:
+    #   #   vip: '高级会员'
+    #   #   follow: '重点关注'
+    #   #   normal: '普通客户'
+    #   # source_from:
+    #   #   tel: '手机'
+    #   #   qq: 'qq好友'
+    #   #   wexin: '微信'
+    #   #   web: '网上查找'
+    #   #   email: '邮件'
+    #   #   friend: '朋友介绍'
+    #   #   recommend: '客户推荐'
+    # admin_log_result:
+    #   level:
+    #     debug: '调试'
+    #     info: '提示'
+    #     warning: '警告'
+    #     error: '失败'
+    admin:
+      status:
+        deleted: '已删除'
+        inactive: '未激活'
+        actived: '激活'
+        locked: '锁定'
+        disabled: '停用'
+      role:
+        visit: '访问用户'
+        normal: '普通用户'
+        manager: '运营人员'
+        mayor: '运营主管'
+        admin: '管理员'
+        super: '超级管理员'
+    sns_account:
+      platform:
+        unknow: '未知'
+        wx_pub: '公众号'
+        account: '账号'
+        phone: '手机'
+        wx_lite: '小程序'
+

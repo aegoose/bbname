@@ -1,0 +1,62 @@
+-content_for :title
+  = t('models.area')
+  | 管理
+
+.row
+  .col-xs-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('list')
+          | &nbsp;&nbsp;
+
+        .box-tools.right-bottom.query
+          / - if policy(:bank_card).new?
+            .query-item.pull-left
+              = link_to new_backend_bank_card_path, class: 'btn btn-primary btn-sm' , data: {modal: true } do
+                i.fa.fa-plus-square
+                  = t('new')
+                  = t('models.bank_card')
+        .query.clearfix
+          = simple_form_for :query, url: backend_bank_cards_path, method: :get, wrapper: :inline_form do |f|
+            .query-item.pull-left.inp-m
+              = f.input :key, placeholder: qr_t("query.bank_card.by_key"), input_html: {value: @qr[:key]}
+            .query-item.pull-left.inp-m
+              = f.input :customer, placeholder: qr_t("query.bank_card.by_customer"), input_html: {value: @qr[:customer]}
+              / = f.input :zone, collection:Area.zone.options, selected: @qr[:zone], include_blank: qr_t("query.area.by_zone"), input_html:{ class: "query-select"}
+
+      .box-body.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              / th=t('activerecord.attributes.bank_card.id')
+              th=t('activerecord.attributes.bank_card.card_no')
+              th=t('activerecord.attributes.bank_card.customer_id')
+              th=t('activerecord.attributes.bank_card.card_type')
+              th=t('activerecord.attributes.bank_card.status')
+              th=t('th_links')
+          tbody
+          - @cards.each do | card |
+            tr
+              / td = card.id
+              td = card.card_no
+              td 
+                .link-group
+                  = link_to card.customer.name, backend_customer_path(card.customer)
+                  = link_to backend_bank_cards_path('query[customer]': card.customer.name), class: 'link-btn invisible ml-2' do
+                    i.fa.fa-search
+              td = card.card_type.text
+              td = card.status_text
+              td
+                - if policy(:bank_card).destroy?
+                  = link_to t('destroy'), backend_bank_card_path(card), method: :delete, data: { confirm: '确定删除吗?' }
+                  / = link_to t('show'), backend_area_path(card)
+                  / = link_to t('edit'), edit_backend_area_path(card)
+                  / | &nbsp;|&nbsp;
+                
+
+      .box-footer
+        .paging
+          = paginate @cards
+          = page_entries_info @cards
+

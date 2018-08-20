@@ -1,0 +1,1 @@
+json.partial! "financial_product", financial_product: @financial_product

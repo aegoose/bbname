@@ -1,0 +1,84 @@
+header.main-header#layoutHeader
+  a.logo href="/backend/"
+    span.logo-mini
+      =sanitize t('admin.company_title')
+    span.logo-lg
+      b=t('admin.company_name')
+  nav.navbar.navbar-static-top[role="navigation"]
+    a.sidebar-toggle[data-toggle="offcanvas" href="javascript:(void);" role="button"]
+      span.sr-only Toggle navigation
+    .navbar-custom-menu
+      ul.nav.navbar-nav
+        / li.dropdown.messages-menu
+          a[href="#" data-toggle="dropdown"]
+            i.fa.fa-envelope-o
+            span.label.label-success
+              | 4
+        - if admin_signed_in?
+
+          - if current_admin.role.super?
+            li.dropdown.notifications-menu
+              = link_to '#', class: 'dropdown-toggle', data: {toggle: 'dropdown'} do
+                | 其他登录
+                i.fa.fa-angle-down
+              ul.dropdown-menu
+                li
+                  ul.menu
+                    - Admin.business_amdins.each do |u|
+                     li
+                      = link_to "使用#{u.name}登录", switch_admin_account_path(uid: u.id)
+
+          - if current_admin.role.super?  || current_admin.org_role == 'super'
+           li.dropdown.notifications-menu
+            = link_to '#', class: 'dropdown-toggle', data: {toggle: 'dropdown'} do
+              = current_admin.role.text
+              i.fa.fa-angle-down
+            ul.dropdown-menu
+               li.header.text-right
+                span
+                  i.text-muted
+                    | 原始角色：
+                    = current_admin.org_role&.text
+               li
+                ul.menu
+                  - Admin.role_options.each do |r|
+                    li = link_to r[0], switch_admin_role_path(role: r[1])
+          - else
+            li.dropdown
+              a
+                i.ft-13
+                  | 角色：
+                  = current_admin.role.text
+
+          li.dropdown.notifications-menu
+            = link_to '#', class: 'dropdown-toggle', data: {toggle: 'dropdown'} do
+              / img.user-image[src="/assets/user2-160x160.jpg" alt="User Image"]
+              = current_admin.username
+              i.fa.fa-angle-down
+            ul.dropdown-menu
+              li.header.text-right
+                span
+                  i.text-muted
+                    | 登录于：
+                    = l current_admin.current_sign_in_at, format: :cn_YmdH
+              li
+                ul.menu
+                  li
+                    = link_to edit_admin_profile_path do
+                      i.fa.fa-user-circle.text-aqua
+                      | 个人中心
+                  li
+                    = link_to edit_admin_registration_path
+                      i.fa.fa-unlock-alt.text-warning
+                      | 修改密码
+                  li
+                    = link_to destroy_admin_session_path, method: :delete do
+                      i.fa.fa-sign-out.text-warning
+                      | 退出登录
+        - else
+          li.user.user-menu
+            = link_to new_admin_session_path do
+              i.fa.fa-sign-in 登录
+          li.user.user-menu
+            = link_to new_admin_registration_path do
+              i.fa.fa-registered 注册

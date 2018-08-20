@@ -1,0 +1,70 @@
+doctype html
+html
+  head
+    meta[charset="UTF-8"]
+    meta[content="webkit" name="renderer"]
+    meta[content="IE=edge" http-equiv="X-UA-Compatible"]
+    meta[content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' name='viewport']
+    / meta[content="width=device-width, initial-scale=1" name="viewport"]
+
+    /管理后台大多为表单页面,不需要turbolinks的cache
+    meta[name="turbolinks-cache-control" content="no-cache"]
+    title=t('admin.backend_title')
+    = csrf_meta_tags
+    = stylesheet_link_tag 'admin-application', media: 'all', 'data-turbolinks-track' => :true
+    = javascript_include_tag 'admin-application', 'data-turbolinks-track' => "reload"
+    /[if lt IE 9]
+      = javascript_include_tag '/vendor/html5shiv.min.js'
+      = javascript_include_tag '/vendor/respond.min.js'
+      = javascript_include_tag '/vendor/ie-polyfill.js'
+      /= javascript_include_tag '/vendor/json2.js'
+  body.skin-blue.sidebar-mini.layout-boxed data={:action => action_name, :resource => controller_name, page: controller_name + '_' + action_name}
+    / fixed
+    = render partial: 'layouts/admin_no_authorized'
+    .wrapper#layout
+      = render partial: 'layouts/admin_application_header'
+      = render partial: 'layouts/admin_application_sidebar'
+      .content-wrapper
+        - unless @top_stats
+          section.content-header
+            h1
+              - if content_for? :title
+                = yield :title
+                small
+                  = yield :subtitle if content_for? :subtitle
+              - else
+                = t('admin.company_name')
+            ol.breadcrumb
+              = render_breadcrumbs :tag => :li
+              / li
+                a[href="/admin"]
+                  i.fa.fa-dashboard
+                    | 主页
+              / li.active
+                | 当前位置
+        .content#layoutContent
+          -if content_for? :content_header
+            .content-header= yield :content_header
+          - if flash.present? &&  flash[:notice].present?
+            .alert.alert-warning.alert-dismissible role="alert"
+              button type="button" class="close" data-dismiss="alert" aria-label="Close"
+                span aria-hidden="true"
+                  | &times;
+              strong 警告!
+              = flash[:notice]
+          - if content_for? :content
+            = yield :content
+          - else
+            = yield
+      #layoutFooter.main-footer
+        .pull-right.hidden-xs
+          |  一些广告或提示信息
+        strong
+          | Copyright © 2015
+          | &nbsp;
+          a[href="#"]
+            | baby
+        | .&nbsp;All rights reserved.
+      / footer#footer
+    .control-sidebar-bg[style="position: fixed; height: auto;"]
+    #modal-holder

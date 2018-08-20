@@ -1,0 +1,199 @@
+# == Schema Information
+#
+# Table name: customers
+#
+#  id                   :integer          not null, primary key
+#  name                 :string(50)
+#  sex                  :integer
+#  birthday             :datetime
+#  tel                  :string(30)
+#  email                :string(50)
+#  province_id          :integer
+#  city_id              :integer
+#  distinct_id          :integer
+#  post_code            :integer
+#  address              :string(200)
+#  catg_id              :integer
+#  tags                 :string(100)
+#  remark               :text(65535)
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  id_card              :string(50)
+#  area_zone            :string(100)
+#  assets_level         :integer
+#  branch_id            :integer
+#  admin_id             :integer
+#  fix_product_id       :integer
+#  fix_due_at           :datetime
+#  insure_product_id    :integer
+#  insure_due_at        :datetime
+#  financial_product_id :integer
+#  financial_due_at     :datetime
+#  last_import_id       :integer
+#  last_import_at       :datetime
+#  birth_month_day      :integer
+#  car_no               :string(255)
+#  hobby                :string(255)
+#  card_no              :string(100)
+#
+# Indexes
+#
+#  index_customers_on_admin_id         (admin_id)
+#  index_customers_on_birth_month_day  (birth_month_day)
+#  index_customers_on_branch_id        (branch_id)
+#  index_customers_on_catg_id          (catg_id)
+#  index_customers_on_city_id          (city_id)
+#  index_customers_on_distinct_id      (distinct_id)
+#  index_customers_on_name             (name)
+#  index_customers_on_province_id      (province_id)
+#  index_customers_on_tel              (tel)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (catg_id => catgs.id)
+#
+
+class Customer < ApplicationRecord
+
+  before_save :try_to_set_id_card_info
+  after_save :try_to_set_card_no_info
+
+  attr_accessor :area
+
+  # before_save :reset_delete_parents
+
+  # belongs_to :catg
+  belongs_to :province, class_name: :Area, foreign_key: :province_id, required: false
+  belongs_to :city, class_name: :Area, foreign_key: :city_id, required: false
+  belongs_to :distinct, class_name: :Area, foreign_key: :distinct_id, required: false
+
+  belongs_to :branch
+  belongs_to :manager, class_name: :Admin, foreign_key: :admin_id, required: true # 客户经理
+  # has_many :logs, class_name: :AdminLog, as: :logable, dependent: :destroy
+  has_many :products, class_name: :CustomerProduct, dependent: :restrict_with_error
+  has_many :cards, class_name: :BankCard, dependent: :destroy # foreign_key: "customer_id"
+
+  include LastRelatable
+  last_at :fix, class_name: 'products', class_key: :id, foreign_key: :fix_product_id, key_hash: { fix_due_at: :end_at }
+  last_at :insure, class_name: 'products', class_key: :id, foreign_key: :insure_product_id, key_hash: { insure_due_at: :end_at }
+  last_at :financial, class_name: 'products', class_key: :id, foreign_key: :financial_product_id, key_hash: { financial_due_at: :end_at }
+  # last_at :card, class_name: 'cards', class_key: :card_no, foreign_key: :card_no
+  last_at :import, class_name: 'AdminLog', class_key: :id, foreign_key: :last_import_id, key_hash: { last_import_at: :ctrl_at }
+
+  validates :name, presence: true
+  validates :tel, presence: true
+  validates_format_of :tel, with: /^[0-9\-]*$/, multiline: true, message: :invalid_format
+
+  extend Enumerize
+  enumerize :sex, in: { boy: 0, girl: 1 }, default: :boy, scope: true
+  enumerize :assets_level, in: { normal: 0, welloff: 5, rich: 10, million: 20, billion: 30 }, default: :normal, scope: true
+  # enumerize :priority, :in => [:vip, :follow, :normal], default: :normal
+  # enumerize :source_from, :in=>[:tel, :qq, :wexin, :web, :email, :friend, :recommend], default: :tel
+
+  scope :by_query, ->(query) { where(query) unless query.blank? }
+  scope :birth_month_at, ->(month, day=0) {
+    sd, ed = month * 100 + day, month * 100 + (day > 0 ? day : 32);
+    # where('birth_month_day >= ? && birth_month_day <= ?', sd, ed) if month > 0
+    where(birth_month_day: sd..ed) if month > 0
+  }
+  # scope :begin_at, ->(d) { where(begin_at: d.beginning_of_day..d.end_of_day) unless d.blank? }
+  scope :by_key, ->(qkey) { where('name like :qk or tel like :qk or id_card like :qk', qk: "#{qkey}%") unless qkey.blank? }
+  scope :by_tag, ->(qkey) { where('tags like :qk', qk: "%#{qkey}%") unless qkey.blank? }
+  scope :last_not_null, ->(ty) { where.not("#{ty}_product_id" => nil) unless ty.blank? }
+  #######################################################
+  def try_to_set_id_card_info
+    if birthday.blank? && id_card.present?
+      id_gender, id_birth = IdCardUtil.get_id_card_info(id_card)
+      self.birthday = id_birth.to_date unless id_birth.blank?
+      self.sex = id_gender if sex.blank? && gender.present?
+    end
+    
+  end
+
+  def try_to_set_card_no_info
+    ## card_no不为0则，设置card信息
+    if card_no.present? && !cards.where(card_no: card_no).exists?
+      cards.create(card_no: card_no)
+    end
+  end
+
+  # get_id_card_info
+
+  #######################################################
+  BIRTHDAY_MONTH_SPAN = 5
+  include CustomerCountable::ActionsForCustomer # redis缓存处理
+  set_check_outdate_actions :birth_month_day, :birthday, BIRTHDAY_MONTH_SPAN #birthday_today? / birthda_near?
+  #######################################################
+  include CustomerTagsable::ActionsForCustomer
+  #######################################################
+
+  def rest_of_birthday
+    return -999 if birthday.blank?
+    birthday.yday - Time.now.yday
+  end
+
+  def area
+    return '' if province_id.blank? && city_id.blank? && distinct_id.blank?
+    "#{province_id}-#{city_id}-#{distinct_id}"
+  end
+
+  def branch_name
+    br_n = branch&.name
+    dist_n = distinct&.name
+    "#{dist_n&.gsub(/(镇|区)$/, '')}#{br_n}"
+  end
+
+  def area=(ids)
+    arr = ids.split('-')
+    province_id = arr[0] if arr.length > 0
+    city_id = arr[1] if arr.length > 1
+    distinct_id = arr[1] if arr.length > 2
+  end
+
+  def area_name
+    area = "#{city&.name}#{distinct&.name}"
+    # area = city&.name if area&.blank?
+    area = province&.name if area&.blank?
+    area
+  end
+
+  def address_str
+    str = ''
+    unless address.blank?
+      str = "#{str}(#{post_code})" unless post_code.blank?
+      str = "地址：#{address}"
+    end
+    str
+  end
+
+  def load_last_card(card_no)
+    self.card_no = card_no
+    cards.find_by_card_no(card_no) || cards.new(card_no: card_no)
+  end
+
+  ## 手工删除商品后，要尝试更新客户信息
+  #
+  def reset_last_product_after_destroy_product!(product)
+    clsty = product.classify
+    return reset_last_product!(clsty) if is_last_product?(product)
+    false
+  end
+
+  ## 重新设置产品列表
+  def reset_last_product!(clsty, product=nil)
+    product = products.classify_at(clsty).order(id: :desc) if products.blank?
+    send("last_#{clsty}=", product)
+    # where(id: customer_id).update_all("last_#{classify}_id": 'NULL', "last_#{classify}_at")
+    self.save
+  end
+
+  def is_last_product?(product)
+    clsty = product.classify
+    last_id = send("#{clsty}_product_id")
+    last_id == product.id
+  end
+
+  def tags_list
+    tags&.split(' ') || []
+  end
+end

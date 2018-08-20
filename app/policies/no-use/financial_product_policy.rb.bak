@@ -1,0 +1,16 @@
+class FinancialProductPolicy < ApplicationPolicy
+
+  def show?
+    record.blank?
+  end
+
+  def crud?
+    admin_super?
+  end
+
+  class Scope < Scope
+    def resolve
+      scope
+    end
+  end
+end

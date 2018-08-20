@@ -1,0 +1,7 @@
+zh-CN:
+  pundit:
+    default: '对不起，你无权限访问。'
+  application:
+    update?: '你没有权限修改当前记录'
+    create?: '你没有权限新建记录'
+

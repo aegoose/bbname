@@ -1,0 +1,124 @@
+module Backend
+  class CustomersController < Backend::ApplicationController
+    respond_to :html, :json
+
+    before_action :set_customer, only: [:show, :edit, :update, :destroy]
+    # before_action :authorize_policy, only: [:new, :edit, :update, :create, :destroy]
+
+    add_breadcrumb I18n.t('navs.backend.customers'), :backend_customers_path
+
+    # GET /customers
+    # GET /customers.json
+    def index
+      add_breadcrumb I18n.t('navs.backend.customers_index'), :backend_customers_path
+
+      @qr = params.fetch(:query, {}).permit(:key, :tags, :manager, :branch_id)
+      @qr = @qr.select{|k,v| {k=>v} unless v.blank? }
+      if @qr[:branch_id].blank? && !params[:branch_id].blank?
+        @qr[:branch_id] = params[:branch_id]
+      end
+      if @qr[:manager].blank? && !params[:manager].blank?
+        @qr[:manager] = params[:manager]
+      end
+      # FIXME:
+      qrkey = @qr.delete(:key)
+      qrtag = @qr.delete(:tags)
+      @customers = policy_scope(Customer).includes(:products).by_query(@qr).by_key(qrkey).by_tag(qrtag).page(params[:page])
+      @qr[:key] = qrkey
+      @qr[:tags] = qrtag
+
+    end
+
+    # GET /customers/1
+    # GET /customers/1.json
+    def show
+    end
+
+    # GET /customers/new
+    def new
+      authorize Customer
+      @customer = Customer.new
+      # respond_modal_with @customer
+    end
+
+    # GET /customers/1/edit
+    def edit
+      # respond_modal_with @customer
+    end
+
+    # POST /customers
+    # POST /customers.json
+    def create
+      update
+    end
+
+    # PATCH/PUT /customers/1
+    # PATCH/PUT /customers/1.json
+    def update
+      pam = customer_params
+      if @customer.blank?
+        @customer = Customer.new(pam)
+        # unless pam[:catg_id].empty?
+        #   catg = Catg.find_by_id(pam[:catg_id])
+        #   @customer.catg = catg
+        # end
+      else
+        @customer.attributes = pam
+      end
+      @customer.distinct = @customer.branch.distinct
+      @customer.manager = current_admin
+
+      isOk = @customer.save
+
+      raise ApiCustomerErrors::CustomerUpdateError.new(@customer.error_messages) unless isOk
+
+      respond_to do |format|
+        format.html { redirect_to backend_customers_url, notice: '保存成功!' }
+        format.json { render :update }
+      end
+    end
+
+    # DELETE /customers/1
+    # DELETE /customers/1.json
+    def destroy
+      isOk = @customer.destroy
+
+      raise ApiCustomerErrors::CustomerDestroyError.new(@customer.error_messages) unless isOk
+
+      respond_to do |format|
+        format.html { redirect_to backend_customers_url, notice: '删除成功' }
+        format.json { head :destroy }
+      end
+    end
+
+    private
+
+    # Use callbacks to share common setup or constraints between actions.
+    def set_customer
+      # @customer = policy_scope(Customer).find_by_id(params[:id])&.first
+      # raise ApiCustomerErrors::CustomerNotFound.new(params[:id]) if @customer.blank?
+      @customer = Customer.find(params[:id])
+      authorize @customer
+      # authorize @customer
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def customer_params
+      params.require(:customer).permit(
+        :sex, :name, :tel, :email,
+        :id_card, :branch_id, :assets_level,
+        :province_id, :city_id, :distinct_id, :address, :post_code, :area_zone,
+        :tags, :remark
+      )
+      # params.require(:customer).permit(
+      #   :catg_id, :priority, :source_from, :sex, :name, :tel, :email,
+      #   :qq, :wechat, :birthday, :education, :interest,
+      #   :province_id, :distinct_id, :city_id, :address, :post_code,
+      #   :job_title, :company_name, :company_nature, :company_scale,
+      #   :office_tel, :office_fax, :office_address, :office_post_code,
+      #   :tags, :remark
+      # )
+    end
+  end
+
+end

@@ -1,0 +1,72 @@
+-content_for :title
+  = t('models.area')
+  | 管理
+
+.row
+  .col-xs-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          - unless @parent.blank?
+            = t('models.area')
+            strong
+              = "\"#{@parent.name}\"" unless @parent.blank?
+          - else
+            | 全国地区
+          = t('list')
+          | &nbsp;&nbsp;
+
+        .box-tools.right-bottom.query
+          = simple_form_for :query, url: backend_areas_path, method: :get, wrapper: :inline_form do |f|
+            - if @parent&.id != 441900
+              .query-item.pull-left
+                = link_to backend_areas_path(parent_id: '441900'), class: 'btn btn-primary btn-sm'  do
+                  i.fa.fa-search 东莞市
+            - else
+              .query-item.pull-left
+                = link_to backend_areas_path, class: 'btn btn-primary btn-sm'  do
+                  i.fa.fa-search 全国
+
+            - if policy(:area).new?
+              .query-item.pull-left
+                = link_to new_backend_area_path, class: 'btn btn-primary btn-sm' , data: {modal: true } do
+                  i.fa.fa-plus-square
+                    = t('new')
+                    = t('models.area')
+            .query-item.pull-left.inp-m
+              = f.input :key, placeholder: qr_t("query.area.by_key"), input_html: {value: @qr[:key]}
+            .query-item.pull-left.inp-m
+              = f.input :zone, collection:Area.zone.options, selected: @qr[:zone], include_blank: qr_t("query.area.by_zone"), input_html:{ class: "query-select"}
+
+      .box-body.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              th=t('activerecord.attributes.area.id')
+              th=t('activerecord.attributes.area.name')
+              th=t('activerecord.attributes.area.zone')
+              th=t('activerecord.attributes.area.code')
+              th=t('activerecord.attributes.area.seq')
+              th=t('th_links')
+          tbody
+          - @areas.each do | area |
+            tr
+            td = area.id
+            td
+              - if area.zone.value <= Area.zone.city.value && !area.leaf?
+                  = link_to area.name, backend_areas_path(parent_id: area.id)
+              - else
+                = area.name
+            td = area.zone.text
+            td = area.code
+            td = area.seq
+            td
+              - if policy(:area).destroy?
+                / = link_to t('show'), backend_area_path(area)
+                / = link_to t('edit'), edit_backend_area_path(area)
+                / | &nbsp;|&nbsp;
+                = link_to t('destroy'), backend_area_path(area), method: :delete, data: { confirm: '确定删除吗?' }
+
+      .box-footer
+        =paginate @areas
+

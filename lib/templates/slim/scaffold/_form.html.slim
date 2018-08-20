@@ -1,0 +1,23 @@
+<%-
+  resource_str = ""
+  if controller_class_path.size() > 0
+    resource_str = "["
+    controller_class_path.each do |pth|
+      resource_str += ":" + pth + ","
+    end
+    resource_str += "@" + singular_table_name + "]"
+  else
+    resource_str = "@" + singular_table_name
+  end
+-%>
+= simple_form_for(<%= resource_str %>) do |f|
+  /= f.error_notification
+  = render 'layouts/error_tip'
+
+  .box-body
+<%- attributes.each do |attribute| -%>
+    = f.<%= attribute.reference? ? :association : :input %> :<%= attribute.name %>
+<%- end -%>
+
+  .box-footer
+    = f.button :submit, :class => 'btn btn-primary'

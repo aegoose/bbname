@@ -1,0 +1,1 @@
+json.extract! customer_product, :id, :classify, :begin_at, :end_at, :period_type, :period, :money, :income_rate

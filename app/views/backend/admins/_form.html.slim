@@ -1,0 +1,22 @@
+.row
+  .col-xs-12.fixed.horz-form
+    = simple_form_for [:backend, @admin], url: (@admin.new_record? ? backend_admins_path : backend_admin_path(@admin)), method: (@admin.new_record? ? :post : :patch), wrapper: :horizontal_form, data: {toggle: :validator, remote: true, type: :json, reloadpage: true} do |f|
+      /= f.error_notification
+      /= render 'layouts/error_tip'
+      .box-body
+        - unless @only_pwd
+          = f.input :username, required:true
+          = f.input :email, required:true
+          = f.input :phone unless @admin.new_record?
+          = f.input :name, required:true, autofocus: true
+          = f.input :role, include_blank: "选择角色"
+          / = f.input :branch_id, collection:Branch.all, label_method: :name, value_method: :id, required:true, include_blank: qr_t("query.customer.by_branch")
+          = f.input :status, include_blank: "选择状态", require:true unless @admin.new_record?
+        - if @admin.new_record? or @only_pwd
+          = f.input :password
+          = f.input :password_confirmation
+      .box-footer
+        .form-group
+          .col-sm-3
+          .col-sm-9
+            = f.submit t('helpers.submit.admin.edit'), :class => 'btn btn-primary'

@@ -1,0 +1,13 @@
+class CreateAdminLogResults < ActiveRecord::Migration[5.1]
+  def change
+    create_table :admin_log_results do |t|
+      t.integer :pos
+      t.text :row
+      t.text :msg
+      t.integer :admin_log_id
+
+      t.timestamps
+    end
+    add_index :admin_log_results, :admin_log_id
+  end
+end

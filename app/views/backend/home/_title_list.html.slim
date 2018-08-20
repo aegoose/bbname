@@ -1,0 +1,98 @@
+
+- if @customers.blank?
+    .col-sm-1
+    .col-sm-10.fixed
+      .h20
+      center 暂无相关用户
+      .h20
+- else
+  - @customers&.each_with_index do | cu, idx |
+    .col-md-6
+      .panel.box.box-default.box-solid.fixed.cus-card
+        .panel-heading[id="headerAt#{idx}" role="tab"]
+          .tags
+            - unless cu.tags.blank?
+              span
+                i.fa.fa-tags.text-gray
+                / i.fa.fa-bookmark
+              - cu.tags_list.each do | tg |
+                span.tag_at.label.label-primary=tg
+          .panel-title
+            .user-block[role="button" data-toggle="collapse" data-parent="#accordion11" href="#collapseAt#{idx}" aria-expanded="true" aria-controls="collapseAt#{idx}"]
+              - if cu.sex.girl?
+                = image_tag "girl.png", class: "img-circle assets bg #{cu.assets_level}"
+              - else
+                = image_tag "boy.png", class: "img-circle assets bg #{cu.assets_level}"
+              span.username
+                =link_to backend_customer_path(cu) do
+                  = cu.name
+                | &nbsp;
+                small.text-muted
+                  = render partial: 'layouts/partial/assets_level', locals: { level: cu.assets_level }
+                | &nbsp;
+                small
+                  = render partial: 'layouts/partial/rest_of_birthday', locals: { birthday: cu.birthday }
+              span.description
+                .user-contact.mt-5
+                  span title="#{cu.address_str}" data-toggle="tooltip" data-placement="bottom"
+                    i.fa.fa-map-marker.text-blue.mr-2
+                    span.text-muted
+                      = cu.branch_name
+                    span.mr-10
+                  span
+                    i.fa.fa-phone.text-blue.mr-2
+                    span.text-muted
+                      = cu.tel
+                .user-products.mt-5
+                  - unless (lfix = cu.last_fix).blank?
+                    = render partial: 'period', locals: {product: lfix}
+                  - unless (linsure = cu.last_insure).blank?
+                    = render partial: 'period', locals: {product: linsure}
+                  - unless (lfinancial = cu.last_financial).blank?
+                    = render partial: 'period', locals: {product: lfinancial}
+                  span
+                    i.fa.fa-angle-double-right.text-primary.mr-2
+                    = link_to "更多产品", backend_customer_products_path(customer_id: cu.id, status: :normal)
+                / span[class="assets #{cu.assets_level}"]
+                  = cu.assets_level.text
+
+        .panel-collapse.collapse[id="collapseAt#{idx}" role="tabpanel" aria-labelledby="headerAt#{idx}"]
+          hr/
+          .panel-body.box-body
+            dl.dl-horizontal
+              dt=t('activerecord.attributes.customer.tel')
+              dd= cu.tel
+              dt=t('activerecord.attributes.customer.assets_level')
+              dd= cu.assets_level.text
+              - unless cu.birthday.blank?
+                dt=t('activerecord.attributes.customer.birthday')
+                dd= l cu.birthday, format: :cn_Md
+              dt=t('activerecord.attributes.customer.branch_id')
+              dd= cu.branch&.name
+              - unless cu.area.blank?
+                dt=t('activerecord.attributes.customer.area')
+                dd=cu.area_name
+              - unless cu.address.blank?
+                dt=t('activerecord.attributes.customer.address')
+                dd
+                  = cu.address
+                  = "(#{cu.post_code})" if cu.post_code
+          .box-footer
+            .pull-right
+              span.mr-5
+                = link_to backend_customers_path(manager: cu.manager) do
+                  = "客户经理：#{cu.manager.name}"
+                  i.fa.fa-lg.fa-angle-double-down
+              / span.mr-5
+                =link_to backend_customer_path(cu) do
+                  | 查看用户
+                  i.fa.fa-lg.fa-angle-double-down
+              / =link_to backend_customer_path(cu) do
+                |录入于
+                = l cu.created_at, format: :cn_Ymd
+                |&nbsp;&nbsp;
+                | 查看用户
+                i.fa.fa-lg.fa-angle-double-down
+    - if idx > 0 && idx%2 == 1
+      .clearfix
+

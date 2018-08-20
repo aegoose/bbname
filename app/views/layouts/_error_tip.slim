@@ -1,0 +1,9 @@
+- flash.each do |name, msg|
+  - next if msg.strip == "继续操作前请登录。"
+  - next if msg.strip == "退出成功."
+  - if msg.is_a?(String)
+    div class = "alert alert-#{name.to_s == 'notice' ? 'success' : 'danger'} alert-dismissible fade in"
+      button.close[type="button" data-dismiss="alert" aria-label="Close"]
+        span[aria-hidden="true"] ×
+      i class = "icon #{name.to_s == 'notice' ? 'icon-sm-info' : 'icon-sm-error'}"
+      = msg

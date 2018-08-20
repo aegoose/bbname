@@ -1,0 +1,1 @@
+json.array! @financial_products, partial: 'financial_product', as: :financial_product

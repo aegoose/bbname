@@ -1,0 +1,30 @@
+doctype html
+html.tiny-html
+  head
+    title 度度充
+    meta content="webkit" name="renderer"
+    meta content="IE=edge" http-equiv="X-UA-Compatible"
+    meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' name='viewport'
+    /管理后台大多为表单页面,不需要turbolinks的cache
+    meta name="turbolinks-cache-control" content="no-cache"
+    = csrf_meta_tags
+    = action_cable_meta_tag
+    = stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => 'reload'
+    /[if lt IE 9]
+      = javascript_include_tag 'html5shiv'
+      = respond_include_tags
+      = javascript_include_tag 'ie-polyfill.js'
+      /= javascript_include_tag '/vendor/html5shiv.min.js'
+      /= javascript_include_tag '/vendor/respond.min.js'
+    = javascript_include_tag '/vendor/jquery.min.js', 'data-turbolinks-track': 'reload'
+    = javascript_include_tag 'application', 'data-turbolinks-track' => 'reload'
+
+  body.tiny-layout.skin-custom data={:action => action_name, :resource => controller_name, page: controller_name + '_' + action_name}
+    header
+      .container
+        h1.logo
+          = link_to root_path do
+            = image_tag('login/login-logo.png')
+    = yield
+    footer
+      .text-center.text-muted  Copyright © 2014-2016 Inc. All Rights Reserved. 粤ICP备14084452号

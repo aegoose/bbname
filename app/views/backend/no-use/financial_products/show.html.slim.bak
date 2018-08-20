@@ -1,0 +1,39 @@
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.financial_product')
+          = t('info')
+          | &nbsp; &nbsp;
+        .box-tools.right-bottom.query
+          / .query-item.pull-left
+            = link_to edit_backend_financial_product_path(@financial_product), class: 'btn btn-primary btn-sm' do
+              span.fa.fa-edit=t('edit')
+            | &nbsp;
+          .query-item.pull-left
+            = link_to backend_financial_products_path, class: 'btn btn-default btn-sm' do
+              span.fa.fa-chevron-left=t('back')
+      .box-body.small-edit
+        dl.dl-horizontal
+          dt=t('activerecord.attributes.financial_product.name')
+          dd= @financial_product.name
+          dt=t('activerecord.attributes.financial_product.classify')
+          dd=@financial_product.classify
+          dt=t('activerecord.attributes.financial_product.apply_area')
+          dd= @financial_product.apply_area&.text
+          dt=t('activerecord.attributes.financial_product.level')
+          dd= @financial_product.level&.text
+          dt=t('activerecord.attributes.financial_product.total_limit')
+          dd= @financial_product.total_limit
+          dt=t('activerecord.attributes.financial_product.min_amount')
+          dd= @financial_product.min_amount
+          dt=t('activerecord.attributes.financial_product.sale_rate')
+          dd= @financial_product.sale_rate
+          dt=t('activerecord.attributes.financial_product.annual_income')
+          dd=@financial_product.annual_income
+          dt=t('activerecord.attributes.financial_product.period')
+          dd= @financial_product.period
+          dt=t('activerecord.attributes.financial_product.source_from')
+          dd= @financial_product.source_from&.text
+      .box-footer

@@ -1,0 +1,62 @@
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.financial_product')
+          = t('list')
+          | &nbsp;&nbsp;
+        .box-tools.right-bottom.query
+        .query.clearfix
+          = search_form_for @q, url: backend_financial_products_path, method: :get, class: "query", wrapper: :inline_form do |f|
+            .query-item.pull-left
+              = f.input :name_cont, :placeholder => "输入产品名"
+            .query-item.pull-left
+              = f.input :apply_area_eq, as: :select, collection: FinancialProduct.apply_area.options, include_blank: '选择发行范围'
+            .query-item.pull-left
+              = f.input :source_from_eq, as: :select, collection: FinancialProduct.source_from.options, include_blank: '选择渠道'
+      .box-body
+        - @financial_products.each do | prod, idx |
+          .box.box-widget.fixed.text-card
+            .box-header.with-border[id="headerAt#{idx}"]
+              .card-title.ft-16
+                =link_to prod.name, backend_financial_product_path(prod)
+              .box-tools.pt-5
+                - if policy(:financial_product).edit?
+                  = link_to edit_backend_financial_product_path(prod) do
+                    i.fa.fa-edit = t('edit')
+                - if policy(:financial_product).destroy?
+                  = link_to backend_financial_product_path(prod), method: :delete, data: { confirm: '确定要删除吗' } do
+                    i.fa.fa-close = t('destroy')
+            .box-body.pb-15
+              .card-line.h35.ft-15.text-warning
+                span = "#{prod.period}天，年收益#{prod.annual_income}%"
+                span="，#{prod.min_amount}万起"
+                span= "，#{prod.total_limit}亿额度"
+              .card-line.row.h30
+                .col-md-3.col-xs-6
+                  span.text-muted
+                    = t('activerecord.attributes.financial_product.classify')
+                    | :
+                  span = prod.classify
+                .col-md-3.col-xs-6
+                  span.text-muted
+                    = t('activerecord.attributes.financial_product.apply_area')
+                    | :
+                  span = prod.apply_area_text
+                .col-md-3.col-xs-6
+                  span.text-muted
+                    = t('activerecord.attributes.financial_product.level')
+                    | :
+                  span =  prod.level_text
+                .col-md-3.col-xs-6
+                  span.text-muted
+                    = t('activerecord.attributes.financial_product.source_from')
+                    | :
+                  span =  prod.source_from_text
+            / .box-footer
+                
+      .box-footer
+        .paging
+          = paginate @financial_products
+          = page_entries_info @financial_products

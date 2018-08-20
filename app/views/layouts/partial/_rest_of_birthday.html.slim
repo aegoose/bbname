@@ -1,0 +1,44 @@
+
+- rest = birthday.blank? ? -999 : birthday.yday - Time.now.yday
+
+- if rest < -999
+- elsif rest < -7
+  i.fa.fa-birthday-cake.text-gray.mr-2
+  span.text-gray
+    = "#{l birthday, format: :cn_md}"
+- elsif rest < 0
+  i.fa.fa-birthday-cake.text-gray.mr-2 title="#{-1*rest}天前生日" data-toggle="tooltip" data-placement="top"
+  span.text-gray
+    = "#{l birthday, format: :cn_md}"
+- elsif rest == 0
+  i.fa.fa-birthday-cake.text-red.mr-2 title="今天生日" data-toggle="tooltip" data-placement="top"
+  span.text-muted
+    = "#{l birthday, format: :cn_md}"
+- elsif rest < 7
+  i.fa.fa-birthday-cake.text-orange.mr-2 title="#{rest}天后生日" data-toggle="tooltip" data-placement="top"
+  span.text-muted
+    = "#{l birthday, format: :cn_md}"
+- else
+  i.fa.fa-birthday-cake.text-gray.mr-2
+  span.text-gray
+    = "#{l birthday, format: :cn_md}"
+
+/ .text-muted
+  - if rest < -999
+  - elsif rest < -7
+    i.fa.fa-birthday-cake.text-muted
+      | &nbsp;
+      = "#{l birthday, format: :cn_Md}"
+  - elsif rest < 0
+    i.fa.fa-birthday-cake.color.gray-dark title="#{-1*rest}天前, #{l birthday, format: :cn_Md}生日" data-toggle="tooltip" data-placement="top"
+  - elsif rest == 0
+    i.fa.fa-birthday-cake.color.red-darker title="今天生日" data-toggle="tooltip" data-placement="top"
+      / = "今天生日"
+  - elsif rest < 7
+    i.fa.fa-birthday-cake.color.red-dark title="#{rest}天后, #{l birthday, format: :cn_Md}生日" data-toggle="tooltip" data-placement="top"
+      / = "#{rest}天后生日"
+  - else
+    / i.fa.fa-birthday-cake title="#{rest}天后生日"
+    i.fa.fa-birthday-cake.text-muted
+      | &nbsp;
+      = "#{l birthday, format: :cn_Md}"

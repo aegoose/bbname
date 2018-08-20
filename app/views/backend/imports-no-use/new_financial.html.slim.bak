@@ -1,0 +1,4 @@
+= content_for :title
+  | 导入理财数据
+= render partial: 'new_import', locals: {admin_log: @admin_log, up_process_url: up_financial_backend_imports_path }
+

@@ -1,0 +1,9 @@
+class AddLogableToAdminLog < ActiveRecord::Migration[5.1]
+  def change
+    change_table :admin_logs do |t|
+      t.integer :logable_id
+      t.string :logable_type
+    end
+    add_index :admin_logs, :logable_id
+  end
+end

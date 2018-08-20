@@ -1,0 +1,22 @@
+- st = @admin_log.status
+- ty = @admin_log.classify
+ul.nav.nav-wizard
+  - if ty.import?
+    li[class="#{st.pending? ? 'active' : ''}"]
+      =link_to "上传客户资料", st.pending? ? new_customer_backend_imports_path : 'javascript:void(0)'
+    li[class="#{st.processing? ? 'active' : ''}"]
+      =link_to "处理上传数据", st.processing? ? process_customer_backend_import_path(@admin_log) : 'javascript:void(0)'
+    li[class="#{st.done? ? 'active' : ''}"]
+      =link_to "完成", "javascript:void(0)"
+  - elsif ty.financial_import?
+    li[class="#{st.pending? ? 'active' : ''}"]
+      =link_to "上传理财产品", st.pending? ? new_financial_backend_imports_path : 'javascript:void(0)'
+    li[class="#{st.processing? ? 'active' : ''}"]
+      =link_to "处理上传数据", st.processing? ? process_financial_backend_import_path(@admin_log) : 'javascript:void(0)'
+    li[class="#{st.done? ? 'active' : ''}"]
+      =link_to "完成", "javascript:void(0)"
+  - else
+    / 不展现
+  li.pull-right
+    = link_to backend_imports_path(classify: ty) do
+      span.fa.fa-chevron-left=t('back')

@@ -1,0 +1,73 @@
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.financial_product')
+          = t('list')
+          | &nbsp;&nbsp;
+        .box-tools.right-bottom.query
+          / .query-item.pull-left
+            - if policy(:financial_product).new?
+              = link_to new_backend_financial_product_path, class: 'btn btn-primary btn-sm' do
+                i.fa.fa-plus-square
+                  = t('new')
+                  = t('models.financial_product')
+        .query.clearfix
+          = search_form_for @q, url: backend_financial_products_path, method: :get, class: "query", wrapper: :inline_form do |f|
+            / .query-item.pull-left.bg-primary.query-label
+              = f.hidden_field :customer_id_eq
+              .label
+                | 当前客户:
+                = @q_cus.name || "不存在"
+              a.label data-query="customer_id_eq" data-close="#{@q_cus.id}"
+                i.fa.fa-times-circle-o
+            .query-item.pull-left
+              = f.input :name_cont, :placeholder => "输入产品名"
+            .query-item.pull-left
+              = f.input :apply_area_eq, as: :select, collection: FinancialProduct.apply_area.options, include_blank: '选择发行范围'
+            .query-item.pull-left
+              = f.input :source_from_eq, as: :select, collection: FinancialProduct.source_from.options, include_blank: '选择渠道'
+      .box-body.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              th ID
+              th = t('activerecord.attributes.financial_product.name')
+              th = t('activerecord.attributes.financial_product.total_limit')
+              th = t('activerecord.attributes.financial_product.apply_area')
+              th = t('activerecord.attributes.financial_product.level')
+              th = t('activerecord.attributes.financial_product.classify')
+              th = t('activerecord.attributes.financial_product.source_from')
+              th = t('activerecord.attributes.financial_product.min_amount')
+              th = t('activerecord.attributes.financial_product.sale_rate')
+              th = t('activerecord.attributes.financial_product.annual_income')
+              th = t('activerecord.attributes.financial_product.period')
+              th = t('th_links')
+          tbody
+          - @financial_products.each do | fproduct |
+            tr
+              / td= link_to fproduct.name, backend_financial_product_path(fproduct)
+              td= fproduct.id
+              td= fproduct.name
+              td= fproduct.total_limit
+              td= fproduct.apply_area&.text
+              td= fproduct.level&.text
+              td= fproduct.classify
+              td= fproduct.source_from&.text
+              td= fproduct.min_amount
+              td= fproduct.sale_rate
+              td= fproduct.annual_income
+              td= fproduct.period
+              td.td-links
+                / = link_to t('show'), backend_financial_product_path(fproduct)
+                - if policy(:financial_product).edit?
+                  = link_to t('edit'), edit_backend_financial_product_path(fproduct)
+                - if policy(:financial_product).destroy?
+                  = link_to t('destroy'), backend_financial_product_path(fproduct), method: :delete, data: {confirm: '确定要删除吗'}
+                = link_to t('info'), backend_financial_product_path(fproduct)
+
+      .box-footer
+        .paging
+          = paginate @financial_products
+          = page_entries_info @financial_products

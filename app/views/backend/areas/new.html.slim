@@ -1,0 +1,11 @@
+.row
+  .col-xs-8
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t("new")
+          = t('models.area')
+          | &nbsp;&nbsp;
+          = link_to backend_areas_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+      = render 'form'

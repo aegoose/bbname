@@ -1,0 +1,11 @@
+class AddRatesToFinancialProduct < ActiveRecord::Migration[5.1]
+  def change
+    change_table :financial_products do |t|
+      t.float :sale_rate
+      t.float :annual_income
+      t.integer :period
+      t.string :source_from
+    end
+    change_column :financial_products, :total_limit, :float
+  end
+end

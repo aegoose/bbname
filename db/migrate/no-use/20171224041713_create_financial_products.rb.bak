@@ -1,0 +1,23 @@
+class CreateFinancialProducts < ActiveRecord::Migration[5.1]
+  def change
+    create_table :financial_products do |t|
+      t.string :classify, limit: 50
+      t.string :apply_area, limit: 50
+      t.string :name, limit: 100
+      t.text :desc
+      t.integer :total_limit
+      t.float :min_amount
+      t.datetime :begin_at
+      t.datetime :end_at
+      t.text :remark
+      t.integer :status
+      t.string :level, limit: 50
+      t.integer :admin_id
+
+      t.timestamps
+    end
+    add_index :financial_products, :name
+    add_index :financial_products, :status
+    add_index :financial_products, :admin_id
+  end
+end

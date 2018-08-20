@@ -1,0 +1,21 @@
+<%- table_path_str = controller_class_path.join("_") + "_" + singular_table_name -%>
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.<%= singular_table_name %>')
+          = t('info')
+          | &nbsp; &nbsp;
+          = link_to edit_<%= table_path_str %>_path(@<%= singular_table_name %>), class: 'btn btn-primary btn-sm' do
+            span.fa.fa-edit=t('edit')
+          | &nbsp;
+          = link_to <%= table_path_str.pluralize %>_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+      .box-body
+        dl.dl-horizontal
+<%- for attribute in attributes -%>
+          dt=t('activerecord.attributes.<%= singular_table_name %>.<%= attribute.name %>'):
+          dd=@<%= singular_table_name %>.<%= attribute.name %>
+<%- end -%>
+      .box-footer

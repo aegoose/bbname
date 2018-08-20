@@ -1,0 +1,44 @@
+class CustomerPolicy < ApplicationPolicy
+
+  # 按网点进行过滤
+  def filter_by_branch?
+    admin? || super?
+  end
+
+  def filter_by_manager?
+    admin? || super?
+  end
+
+
+  def filter_by_tags?
+    manager? || mayor?
+  end
+
+  def show?
+    # 超级管理员可查看所有
+    return true if admin_super?
+    # 可查看相同的产品经理客户
+    return record.manager == user if manager?
+    # 可查看相同的网点客户
+    return record.branch == user.branch if mayor?
+    false
+  end
+
+  def crud?
+    manager?
+  end
+
+  class Scope < Scope
+    def resolve
+      if user.admin? || user.super?
+        scope
+      elsif user.mayor?
+        scope.where(branch: user.branch)
+      elsif user.manager?
+        scope.where(manager: user)
+      else
+        scope.where('1=0')
+      end
+    end
+  end
+end

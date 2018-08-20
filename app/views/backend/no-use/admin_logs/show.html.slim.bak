@@ -1,0 +1,24 @@
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.admin_log')
+          = t('info')
+          | &nbsp; &nbsp;
+          = link_to edit_backend_admin_log_path(@admin_log), class: 'btn btn-primary btn-sm' do
+            span.fa.fa-edit=t('edit')
+          | &nbsp;
+          = link_to backend_admin_logs_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+      .box-body
+        dl.dl-horizontal
+          dt=t('activerecord.attributes.admin_log.classify')
+          dd=@admin_log.classify.text
+          dt=t('activerecord.attributes.admin_log.title')
+          dd=@admin_log.title
+          dt=t('activerecord.attributes.admin_log.content')
+          dd=@admin_log.content
+          dt=t('activerecord.attributes.admin_log.result')
+          dd=@admin_log.result
+      .box-footer

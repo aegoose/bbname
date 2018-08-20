@@ -1,0 +1,38 @@
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.admin_log')
+          = t('info')
+          | &nbsp; &nbsp;
+        .box-tools.right-bottom.query
+          = link_to backend_imports_path(classify: @admin_log.classify), class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+          | &nbsp;
+      .box-body.small-edit
+        dl.dl-horizontal
+          dt=t('activerecord.attributes.admin_log.classify')
+          dd=@admin_log.classify.text
+          dt=t('activerecord.attributes.admin_log.title')
+          dd=@admin_log.title
+          dt=t('activerecord.attributes.admin_log.process')
+          dd=@admin_log.process_msg
+          dt=t('activerecord.attributes.admin_log.attachment')
+          dd
+            = link_to @admin_log.attachment.file_name, @admin_log.attachment.attachment_url
+          dt=t('activerecord.attributes.admin_log.result')
+          dd
+            pre.text-muted
+              - unless @admin_log.results.blank?
+                - @admin_log.results.each do |x|
+                  p class="log #{x.level}"
+                    = x.content
+              - else
+                | 无结果
+              / - unless @admin_log.result.blank?
+                -@admin_log.result.split("\n").each_with_index do |x, i|
+                  - unless x.blank?
+                    p = x
+
+      .box-footer

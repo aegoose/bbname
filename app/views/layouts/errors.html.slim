@@ -1,0 +1,8 @@
+- content_for :content do
+    = yield
+
+- if admin_signed_in?
+  = render template: 'layouts/admin_application'
+- else
+  = render template: 'layouts/application'
+

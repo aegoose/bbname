@@ -1,0 +1,20 @@
+/ .row
+  .col-xs-8
+    .box.box-primary
+      .box-header.with-border
+        h3
+          =t('edit')
+          =t('models.card')
+          | &nbsp; &nbsp;
+          = link_to backend_bank_card_path(@card), class: 'btn btn-primary btn-sm' do
+            i.fa.fa-file-o
+              =t('show')
+          | &nbsp;
+          = link_to backend_bank_cards_path, class: 'btn btn-default btn-sm' do
+            i.fa.fa-chevron-left
+              = t('back')
+      = render 'form'
+= content_for :title
+  = t("edit")
+  = t('models.card')
+= render 'form'

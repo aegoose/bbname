@@ -1,0 +1,61 @@
+//bootstrap override
+$font-family-sans-serif: "\5FAE\8F6F\96C5\9ED1", 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$input-border-radius: 0;
+$input-border-radius-large: 0;
+$input-border-radius-small: 0;
+$bootstrap-sass-asset-helper: true;
+
+@import "bootstrap/variables";
+
+//application variables
+$z-content: 0;
+$z-popup: 100;
+$z-top: 9999;
+
+// responsive screen size (extend boostrap)
+$screen-lg-max: 1440px;
+$screen-xl-min: $screen-lg-max + 1;
+$screen-xl-max: 1600px;
+$screen-xxl-min: $screen-xl-max + 1;
+
+//color
+$white:#fff;
+$blue: #46c1fa;
+
+$grey-lighten:            #f6f8fa;
+$grey-light:              #d8e2ec;
+$grey:                    #cbd2d8;
+$grey-dark:               #7f8d9c;
+$grey-darken:             #34495e;
+$grey-darkest:            #2c3e50;
+
+$green-light:             #d4ffdc;
+$green:                   #0cc019;
+$green-darken:            #0ea719;
+
+$red-light:               #fbf0f1;
+$red:                     #e74c3c;
+$red-darken:              #c0392b;
+
+$orange-light:            #f6ba07;
+$orange:                  #ff8700;
+$orange-dark:             #df493a;
+
+
+$border-color-grey:       $grey;
+$border-color-light-grey: #dedede;
+$border-color:            #d2dae0;
+
+
+$text-grey:               #566c7b;
+
+
+$selected-bg:             $grey-light;
+
+
+//base on admin lte
+$primary-color: #3c8dbc;
+$info-color: #00c0ef;
+$success-color: #00a65a;
+$warning-color: #f39c12;
+$danger-color:  #f56954;

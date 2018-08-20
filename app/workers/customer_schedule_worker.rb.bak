@@ -1,0 +1,34 @@
+require 'sidekiq-scheduler'
+
+class CustomerScheduleWorker
+  include Sidekiq::Worker
+  sidekiq_options retry: false, queue: :schedule, backtrace: 5
+
+  def perform()
+    # Do something
+    # logger.warn 'hello'
+
+    # reset stats
+    # reset tags
+    reset_cus_counts
+    # reset_cus_status
+    reset_tags
+
+  end
+
+  def reset_cus_counts
+    Admin.reset_customer_product_counts(true)
+    Branch.reset_customer_product_counts(true)
+  end
+
+  def reset_cus_status
+    exp_n = CustomerProduct.outdated_from_now.where('status > ?', CustomerProduct.status.expired.value).update_all(status: CustomerProduct.status.expired)
+
+    near_n = CustomerProduct.will_outdate_near.where('status > ?', CustomerProduct.status.outting.value).update_all(status: CustomerProduct.status.outting)
+  end
+
+  def reset_tags
+    Admin.reset_customer_tags
+    Branch.reset_customer_tags
+  end
+end

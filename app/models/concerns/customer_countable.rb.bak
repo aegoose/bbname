@@ -1,0 +1,544 @@
+# require 'redis-namespace'
+
+module CustomerCountable
+  extend ActiveSupport::Concern
+
+  # admin/branch的客户数
+  CUS_XXX = [:cus, :cus_fix, :cus_insure, :cus_financial]
+  # 所有的客户数
+  CUS_ALL_XXX = [:cus_all, :cus_all_fix, :cus_all_insure, :cus_all_financial]
+
+  # admin/branch将过期的客户数
+  CUS_OUT_XXX = [:cus_out_fix, :cus_out_insure, :cus_out_financial]
+
+  # 所有将过期的客户数
+  CUS_ALL_OUT_XXX = [:cus_all_out_fix, :cus_all_out_insure, :cus_all_out_financial]
+  # admin/branch即将生日的客户数
+  CUS_BIRTH = [:cus_birthday]
+  # 即将生日的客户数
+  CUS_ALL_BIRTHDAY = [:cus_all_birthday]
+
+  #######################################################
+  # 全局重置
+
+  class_methods do
+
+    # 通过数据库查询客户数
+    def define_customer_count_from_scope(cus_scope, meth, is_all=false)
+      self_prefix = is_all ? 'self.' : ''
+      class_eval <<-RUBY, __FILE__, __LINE__ + 1
+      def #{self_prefix}count_from_#{meth}
+        #{cus_scope}.count # customers
+      end
+      RUBY
+    end
+
+    # 通过数据库查询商品的客户数据
+    def define_product_count_from_scope(product_scope, meth, is_all=false)
+      self_prefix = is_all ? 'self.' : ''
+      class_eval <<-RUBY, __FILE__, __LINE__ + 1
+      def #{self_prefix}count_from_#{meth}
+        # #{product_scope}.with_status(:actived).select('distinct customer_id').count
+        #{product_scope}.with_status(:actived).select('distinct customer_id').count
+      end
+      RUBY
+    end
+
+    # 设置计数的方法
+    def define_count_actions(field_c, meth, is_all=false)
+      self_prefix = is_all ? 'self.' : ''
+      class_eval <<-RUBY, __FILE__, __LINE__ + 1
+      # 重置个数
+      def #{self_prefix}reset_#{meth}_n
+        nn = count_from_#{meth}
+        # logger.info "=====\#{self.name}-#{self_prefix}reset_#{meth}_n=======\#{nn}"
+        #{field_c}.reset nn
+      end
+
+      # 取个数据
+      def #{self_prefix}#{meth}_n #
+        ncc = #{field_c}.value
+        if ncc <= 0
+          ncc = count_from_#{meth}
+          #{field_c}.reset ncc
+        end
+        ncc
+      end
+
+      ## 累加
+      def #{self_prefix}inc_#{meth}_n
+        #{field_c}.increment
+      end
+
+      ## 累减
+      def #{self_prefix}dec_#{meth}_n
+        #{field_c}.decrement
+      end
+
+      def #{self_prefix}clear_#{meth}_n
+        #{field_c}.clear
+      end
+      RUBY
+    end
+
+    # 清空所有redis的值
+    def clear_all_counts
+      ns_rd = Redis::Namespace.new(self.name.downcase, redis: Redis::Objects.redis)
+      kys = ns_rd.keys('*cus_*')
+      ns_rd.del(kys) if kys.present?
+    end
+  end
+
+  included do
+
+    include Redis::Objects unless respond_to? :redis_objects
+
+    #######################################################
+    # 定义各类counter/list
+
+    # 设置某个实体的总数 counter
+    # count_from_cus[_fix|_insure|_financial]
+    # reset_cus[_fix|_insure|_financial]
+    # cus[_fix|_insure|_financial]_n
+    # inc_cus[_fix|_insure|_financial]_n
+    # dec_cus[_fix|_insure|_financial]_n
+    CUS_XXX.each do |meth| 
+      scoper = meth.to_s.gsub(/^cus/, '').gsub(/^_/, '')
+      field_c = "#{meth}_c"
+      counter "#{meth}_c", expiration: 1.hour #redis字段
+
+      if scoper.blank? # cus
+        define_customer_count_from_scope("customers", meth)
+      else
+        # define_product_count_from_scope("customer_products.with_classify('#{scoper}')", meth)
+        define_customer_count_from_scope("customers.last_not_null('#{scoper}')", meth)
+      end
+      define_count_actions(field_c, meth)
+    end
+
+    # 设置所有的数据总数 counter
+    # count_from_cus_all[_fix|_insure|_financial]
+    # reset_cus_all[_fix|_insure|_financial]
+    # cus_all[_fix|_insure|_financial]_n
+    # inc_cus_all[_fix|_insure|_financial]_n
+    # dec_cus_all[_fix|_insure|_financial]_n
+    CUS_ALL_XXX.each do |meth|
+      scoper = meth.to_s.gsub(/^cus_all/, '').gsub(/^_/, '') # .gsub(/all$/, '').gsub(/_$/, '')
+      field_c = "#{meth}_c"
+      counter field_c, global: true, expiration: 1.hour
+
+      if scoper.blank?
+        define_customer_count_from_scope('Customer.all', meth, true)
+      else
+        # define_product_count_from_scope("CustomerProduct.all.with_classify('#{scoper}')", meth, true)
+        define_customer_count_from_scope("Customer.all.last_not_null('#{scoper}')", meth, true)
+      end
+
+      define_count_actions(field_c, meth, true)
+    end
+
+    # 设置某个实体过期数据 set
+    # cus_out_(fix|insure|financial)_n
+    # reset_cus_out_(fix|insure|financial)_list
+    CUS_OUT_XXX.each do |meth|
+      field_set = "#{meth}_list"
+      ty = meth.to_s.gsub(/^.*_(\w+)$/, '\1')
+
+      set field_set
+      class_eval <<-RUBY, __FILE__, __LINE__ + 1
+      def #{meth}_n
+        send("#{field_set}").count
+      end
+      def reset_#{meth}_list
+        cus_ids = customer_products.classify_at("#{ty}").will_outdate_near.select(:customer_id).distinct(:customer_id).pluck(:customer_id)
+        ll = self.send("#{field_set}")
+        ll.clear
+        n = ll.add(cus_ids)
+        logger.info "\#{self.class.name}:\#{self.id}--#{field_set}==\#{cus_ids} == ---\#{n}"
+        cus_ids
+      end
+      RUBY
+    end
+
+    # cus_all_out_(fix|insure|financial)_n
+    # reset_all_cus_out_(fix|insure|financial)_list
+    CUS_ALL_OUT_XXX.each do |meth|
+      field_set = "#{meth}_list"
+      outty = meth.to_s.gsub(/^cus_all_/, 'cus_')
+      set field_set, global: true
+      class_eval <<-RUBY, __FILE__, __LINE__ + 1
+      def self.#{meth}_n
+          send("#{field_set}").count
+      end
+
+      def self.reset_#{meth}_list(objs = nil)
+        methlist = "#{outty}_list"
+        ll = send("#{field_set}")
+        ll.clear
+        objs = all if objs.blank?
+        objs.each do |obj|
+          mbrs = obj.send(methlist).members
+          n = ll.add(mbrs)
+          logger.info "\#{self.name}--\#{methlist}--\#{obj.id}--\#{mbrs}---\#{n}"
+        end
+        ll
+      end
+      RUBY
+    end
+
+    # cus_birthday_c
+    # count_from_cus_birthday
+    # reset_cusbirthday
+    # cus_birthday_n
+    # inc_cus_birthday_n
+    # dec_cus_birthday_n
+    CUS_BIRTH.each do |meth|
+      field_c = "#{meth}_c"
+      counter field_c, expiration: 1.hour
+      define_customer_count_from_scope('customers.will_outdate_near', meth)
+      define_count_actions(field_c, meth)
+    end
+
+    ## 设置所有的生日到期的客户数 counter
+    # cus_all_birthday_c
+    # count_from_cus_all_birthday
+    # reset_cus_all_birthday
+    # cus_all_birthday_n
+    # inc_cus_all_birthday_n
+    # dec_cus_all_birthday_n
+    CUS_ALL_BIRTHDAY.each do |meth|
+      field_c = "#{meth}_c"
+      counter field_c, global: true, expiration: 1.hour
+      define_customer_count_from_scope('Customer.will_outdate_near', meth, true)
+      define_count_actions(field_c, meth, true)
+    end
+
+    #######################################################
+    # 全局重置
+    class_eval <<-RUBY, __FILE__, __LINE__ + 1
+    # 清除计数，展示的时候，将通过sql语句重新计数，将重新计数
+    def clear_count_admin_branch
+      (CUS_XXX+CUS_BIRTH).each do |meth| 
+        self.send("clear_\#{meth}_n")
+      end
+      (CUS_ALL_XXX+CUS_ALL_BIRTHDAY).each do |meth|
+        self.class.send("clear_\#{meth}_n")
+      end
+    end
+    # 重置所有数据
+    def self.reset_customer_product_counts(rs_records=false)
+      # delete all cached
+      self.clear_all_counts
+
+      # reset all in class
+      CUS_ALL_XXX.each { |meth| send("reset_\#{meth}_n") }
+
+      # reset all in instance
+      if rs_records
+        objs = all.to_a
+        objs.each { |adm|  adm&.reset_customer_product_counts }
+        CUS_ALL_BIRTHDAY.each { |meth| send("reset_\#{meth}_n") }
+        CUS_ALL_OUT_XXX.each { |meth|  send("reset_\#{meth}_list", objs)}
+      end
+    end
+
+    # 单个实体的重置
+    def reset_customer_product_counts
+      # reset cus count
+      (CUS_XXX+CUS_BIRTH).each { |meth| send("reset_\#{meth}_n") }
+      # reset birthday
+      # CUS_BIRTH.each { |meth| send("reset_\#{meth}_n") }
+
+      # reset outdate
+      CUS_OUT_XXX.each { |meth| send("reset_\#{meth}_list") }
+      # customer_products.will_outdate_near.each { |prod| up_product_outdate_near(prod) }
+    end
+    RUBY
+  end
+
+  #######################################################
+  # 客户处理
+
+  def after_create_cus(cus)
+    # self.send(:inc_cus_n)
+    # self.class.send(:inc_cus_all_n)
+    self.reset_customer_product_counts unless cus.blank?
+  end
+
+  def after_destroy_cus(cus)
+    unless cus.blank?
+      # 删除过期的用户
+      CUS_OUT_XXX.each do |meth|
+        obj = self.send("#{meth}_list")
+        obj.send(:delete, cus.id) if obj
+      end
+      CUS_ALL_OUT_XXX.each do |meth|
+        obj = self.class.send("#{meth}_list")
+        obj.send(:delete, cus.id) if obj
+      end
+      self.reset_customer_product_counts
+      # 删除用户数
+      # CUS_XXX.each do |meth|
+      #   self.send("dec_#{meth}_n")
+      # end
+      # # 删除所有用户数
+      # CUS_ALL_XXX.each do |meth|
+      #   self.class.send("dec_#{meth}_n")
+      # end
+      # CUS_ALL_BIRTHDAY.each do |meth|
+      #   self.class.send("dec_#{meth}_n")
+      # end
+    end
+  end
+
+  #######################################################
+  # 产品处理
+
+  # def try_reset_cus_by_product!(prod)
+  #   c1 = self.send("cus_#{prod.classify}_c").value # 当前的客户数
+  #   self.send("reset_cus_#{prod.classify}_n") # 重置客户数
+  #   c2 = self.send("cus_#{prod.classify}_c").value # 新的客户数
+  #   up_product_outdate_near(prod)
+  #   # logger.info "--reset_cus_#{prod.classify}_n--c1=#{c1} ====> c2=#{c2}"
+  #   c2 != c1
+  # end
+
+  def after_create_product(prod)
+    if prod && !prod.customer_id.blank?
+      # if try_reset_cus_by_product!(prod)
+      #   # logger.info "--inc_cus_all_#{prod.classify}_n--c1=#{c1} ====> c2=#{c2}"
+      #   self.class.send("inc_cus_all_#{prod.classify}_n")
+      # end
+      self.reset_customer_product_counts
+      up_product_outdate_near(prod)
+    end
+  end
+
+  def after_destroy_prod(prod)
+    # 
+    # 检查并删除
+    if prod && !prod.customer_id.blank?
+      # if try_reset_cus_by_product!(prod)
+      #   self.class.send("dec_cus_all_#{prod.classify}_n")
+      #   # logger.info "--dec_cus_all_#{prod.classify}_n--c1=#{c1} ====> c2=#{c2}"
+      # end
+      self.reset_customer_product_counts
+      up_product_outdate_near(prod, true)
+    end
+  end
+
+  # begin
+  #######################################################
+  # 最近到期产品处理
+  def up_product_outdate_near(prod, force_delete = false)
+    cus_id = prod.customer_id
+    if prod && !cus_id.blank?
+      meth = "cus_out_#{prod.classify}"
+      all_meth = "cus_all_out_#{prod.classify}"
+
+      cache_list = send("#{meth}_list")
+      all_cache_list = self.class.send("#{all_meth}_list")
+      if !force_delete && prod.outdate_near?
+        cache_list&.add(cus_id)
+        all_cache_list&.add(cus_id)
+        return 
+      end
+      old_n = cache_list.count
+      cache_list&.delete(cus_id)
+      new_n = send("reset_#{meth}_list")
+      all_cache_list&.delete(cus_id) if new_n < old_n
+    end
+  end
+
+  #######################################################
+  # 即外生日处理
+  # def up_birthday_near(cus)
+  #   if cus && cus.birthday_near?
+  #     cus_birthday_list << cus.id
+  #   else
+  #     cus_birthday_list.delete(cus.id)
+  #   end
+  # end
+
+  #######################################################
+  # 重置于过期产品
+  # def reset_outdate_by_cus(cus)
+  #   # up_birthday_near(cus)
+  #   %i[fix insure financial].each do |ty|
+  #     obj = self.send("cus_out_#{ty}_list")
+  #     unless obj.blank?
+  #       if cus.products.classify_at(ty).will_outdate_near.count > 0
+  #         obj&.add(cus.id)
+  #       else
+  #         obj&.delete(cus.id)
+  #       end
+  #     end
+  #   end
+  # end
+
+  #######################################################
+  # 扩展到 CustomerProduct
+
+  module ActionsForCustomerProduct
+    extend ActiveSupport::Concern
+
+    included do
+      class_eval <<-RUBY, __FILE__, __LINE__ + 1
+      def after_prod_create
+        # logger.info "---------ActionsForCustomerProduct:create"
+        self.manager&.after_create_product(self) if self.respond_to? :manager
+        self.branch&.after_create_product(self) if self.respond_to? :branch
+        true
+      end
+
+      def after_prod_destroy
+        # logger.info "---------ActionsForCustomerProduct:destroy"
+        self.manager&.after_destroy_prod(self) if self.respond_to? :manager
+        self.branch&.after_destroy_prod(self) if self.respond_to? :branch
+        true
+      end
+
+      def after_prod_update
+        # logger.info "---------ActionsForCustomerProduct:update"
+        self.manager&.up_product_outdate_near(self) if self.respond_to? :manager
+        self.branch&.up_product_outdate_near(self) if self.respond_to? :branch
+        true
+      end
+      RUBY
+
+      after_create :after_prod_create
+      after_update :after_prod_update
+      after_destroy :after_prod_destroy
+    end
+
+    class_methods do
+      def set_check_outdate_actions(out_column, near_span = 0)
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+        # with_status
+        scope :will_outdate_near, ->(span = 0) do
+          span = "#{near_span}".to_i if span <= 0
+          sd,ed = Time.now, Time.now + span.day
+          where("#{out_column}": sd.beginning_of_day..ed.end_of_day)
+        end
+
+        scope :outdated_from_now, -> do
+          where("#{out_column} <= ?", Time.now.beginning_of_day)
+        end
+
+        scope :actived_from_now, -> do
+          where("#{out_column} > ?",  Time.now.beginning_of_day)
+        end
+
+        # 最近将过期： 结束日期 > 当前日期 + near_span
+        def outdate_near?
+          edat = send("#{out_column}")
+          edat && edat > Time.now.beginning_of_day && edat < Time.now.end_of_day + "#{near_span}".to_i.day
+        end
+
+        # 已过期
+        def outdate?
+          send("#{out_column}") < Time.now.beginning_of_day
+        end
+
+        # 今天过期吗
+        def outdate_today?
+          edat = send("#{out_column}")
+          edat && edat > Time.now.beginning_of_day && edat < Time.now.end_of_day
+        end
+        RUBY
+      end
+    end
+  end
+
+  #######################################################
+  # 扩展到Customer
+
+  module ActionsForCustomer
+    extend ActiveSupport::Concern
+    included do
+      class_eval <<-RUBY, __FILE__, __LINE__ + 1
+      # 创建客户
+      def after_cus_create
+        # logger.info "-----------ActionsForCustomer:create"
+        self.manager&.after_create_cus(self) if self.respond_to? :manager
+        self.branch&.after_create_cus(self) if self.respond_to? :branch
+        true
+      end
+
+      # 删除客户
+      def after_cus_destroy
+        # logger.info "-----------ActionsForCustomer:destroy"
+        self.manager&.after_destroy_cus(self) if self.respond_to? :manager
+        self.branch&.after_destroy_cus(self) if self.respond_to? :branch
+        true
+      end
+
+      # 更新客户
+      def after_cus_update
+        # logger.info "-----------ActionsForCustomer:update"
+        # self.manager&.up_birthday_near(self) if self.respond_to? :manager
+        # TODO: 更新时，要统一其下的产品有没有变更，有则要进行更新
+        true
+      end
+      RUBY
+
+      before_save :reset_birth_month_day
+      after_create :after_cus_create
+      after_update :after_cus_update
+      after_destroy :after_cus_destroy
+    end
+
+    class_methods do
+      def set_check_outdate_actions(out_column, birth_column, near_span = 0)
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+        # 生日将到期
+        scope :will_outdate_near, ->(span=0) do
+          span = "#{near_span}".to_i if span <= 0
+          sd, ed = Time.now, Time.now + span.day
+          sbd, ebd = to_birth_month_day(sd), to_birth_month_day(ed)
+          sbd, ebd = ebd, sbd if ebd < sbd
+          where("#{out_column} >= ? and #{out_column} <= ?", sbd, ebd)
+        end
+        # 生日将到期
+        scope :outdated_from_now, -> do
+          where("#{out_column} < ?", to_birth_month_day(Time.now))
+        end
+
+        scope :actived_from_now, -> do
+          where("#{out_column} >= ?", to_birth_month_day(Time.now))
+        end
+
+        def reset_birth_month_day
+          br = send("#{birth_column}")
+          send("#{out_column}=", to_birth_month_day(br))
+        end
+
+        def self.to_birth_month_day(date)
+          date.blank? ? 0 : date.month * 100 + date.day
+        end
+
+        def to_birth_month_day(date)
+          self.class.to_birth_month_day(date)
+        end
+
+        def birthday_today?
+          edat = send("#{out_column}")
+          edat > 0 && edat == to_birth_month_day(Time.now)
+        end
+
+        def birthday_near?
+          edat = send("#{out_column}")
+          sd = to_birth_month_day(Time.now)
+          ed = to_birth_month_day(Time.now + "#{near_span}".to_i.day)
+          if ed < sd # 例如 [1201, 101]
+            edat && (edat >= sd || edat <= ed)
+          else
+            edat && (edat >= sd && edat <= ed)
+          end
+        end
+        RUBY
+      end
+    end
+
+  end
+end

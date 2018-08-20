@@ -1,0 +1,22 @@
+.login-page
+  .login-box
+    .login-logo
+      a[href="#"]
+        b=t("admin.company_title")
+        =t("admin.company_name")
+    .login-box-body
+      h4.login-box-msg
+        =t("admin.forget_password_title")
+      = simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f|
+        /= f.error_notification id:'login_error_message', class:'alert alert-danger'
+        = render 'layouts/error_tip'
+        .form-group.has-feedback
+          | &nbsp;
+        .form-group.has-feedback
+          = f.input :login, required: true, label:false, autofocus: true
+          span.form-control-feedback
+            i.fa.fa-lock
+        .form-actions
+          = f.submit t('helpers.submit.admin.send_reset_password'), class:'btn btn-primary btn-block btn-flat'
+        p.form-group
+          = render "backend/accounts/shared/links"

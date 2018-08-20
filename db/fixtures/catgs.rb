@@ -1,0 +1,20 @@
+
+# Catg.seed(:id,
+#           {id: 1, name: '合同纠纷', seq: 1},
+#           {id: 2, name: '婚姻家庭', seq: 2},
+#           {id: 3, name: '刑事辩护', seq: 3},
+#           {id: 4, name: '劳动争议', seq: 4},
+#           {id: 5, name: '房产纠纷', seq: 5},
+#           {id: 6, name: '交通事故', seq: 6},
+#           {id: 7, name: '债务纠纷', seq: 7},
+#           {id: 8, name: '建设工程', seq: 8},
+#           {id: 9, name: '知识产权', seq: 9},
+#           {id: 10, name: '医疗纠纷', seq: 10},
+#           {id: 11, name: '公司法务', seq: 11},
+#           {id: 12, name: '涉外法律', seq: 12},
+#           {id: 13, name: '征地补偿', seq: 13},
+#           {id: 14, name: '商业纠纷', seq: 14},
+#           {id: 15, name: '法律顾问', seq: 15},
+#           {id: 16, name: '民事代理', seq: 16},
+#           {id: 17, name: '行政诉讼', seq: 17}
+#           )

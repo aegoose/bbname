@@ -1,0 +1,51 @@
+= content_for :title
+  | 导入客户数据
+= render partial: 'process_import', locals: {admin_log: @admin_log, refresh_up_process_url: process_financial_backend_import_path(admin_log, partial: true)}
+/ .row
+  .col-md-12.horz-form
+    .box.box-primary.fixed.mb-5
+      .box-header.with-border
+        / h3
+        = render partial: 'nav_wizard', locals: {admin_log: @admin_log}
+        / ul.nav.nav-wizard
+          li
+            =link_to "上传理财产品", new_financial_backend_imports_path
+          li[class="#{@admin_log.status.done? ? '' : 'active'}"]
+            =link_to "处理上传数据", process_financial_backend_import_path(@admin_log)
+          li[class="#{@admin_log.status.done? ? 'active' : ''}"]
+            =link_to "完成", "#step3"
+          li.pull-right
+            = link_to backend_imports_path do
+              span.fa.fa-chevron-left=t('back')
+      .box-body
+        .h30
+        - percents = @admin_log.process_percents
+        .form-group
+          .col-sm-2
+          .col-sm-8
+            .progress.margin-5.radius-5
+              .progress-bar.progress-bar-success.progress-bar-striped[class="#{@admin_log.status.done? ? '' : 'active'}" role="progressbar" aria-valuenow="#{percents[0]+100}" aria-valuemin="0" aria-valuemax="100" style="width:#{percents[0]+100}%"]
+                .sr-only = @admin_log.process_msg
+            center.text-muted = @admin_log.process_msg
+        .h10
+        .h30
+          hr/
+        .form-group
+          .col-sm-1
+          .col-sm-10
+            pre.text-muted[class="#{ @admin_log.status.done? ? '' : 'process-result' }"]
+              -if @admin_log.result.blank?
+                p 处理中...
+              -else
+                -@admin_log.result.split("\n")&.each_with_index do |x, i|
+                  - unless x.blank?
+                    p = x
+                    / p[class="#{ i%2==0 ? 'odd' : "even"}"] =x
+            - unless @admin_log.status.done?
+              .text-muted.process-loader
+                i.fa.fa-spinner.fa-pulse.fa-fw
+                  .sr-only processing...
+      .box-footer
+        .col-md-10
+          .col-sm-3
+          .col-sm-8

@@ -1,0 +1,30 @@
+class BankCardPolicy < ApplicationPolicy
+
+  def show?
+    # 超级管理员可查看所有
+    return true if admin_super?
+    # 可查看相同的产品经理客户
+    return record.customer.manager == user if manager?
+    # 可查看相同的网点客户
+    return record.customer.branch == user.branch if mayor?
+    false
+  end
+
+  def crud?
+    manager? || admin_super?
+  end
+
+  class Scope < Scope
+    def resolve
+      if user.admin? || user.super?
+        scope
+      elsif user.mayor?
+        scope.joins(:customer).where("customer.branch_id": user.branch)
+      elsif user.manager?
+        scope.joins(:customer).where("customers.admin_id": user)
+      else
+        scope.where('1=0')
+      end
+    end
+  end
+end

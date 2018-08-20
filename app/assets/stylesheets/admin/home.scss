@@ -1,0 +1,91 @@
+// Place all the styles related to the admin/home controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+@import "common/mixins";
+
+@mixin skip-tb-by($nums, $lasts){
+  //http://blog.csdn.net/fungleo/article/details/50813881
+  //nth-child(n+4):nth-child(-n+8)
+  //:not(:nth-child(3n+1))
+  table.table-striped{
+    // th:nth-last-child(n+#{$lasts+1}), td:nth-last-child(n+#{$lasts+1}) { display:none; }
+    // th:nth-child(-n+#{$nums}), td:nth-child(-n+#{$nums}){display:table-cell;}
+    //
+    //[$nums, $lasts)
+    th:nth-child(n+#{$nums+1}):nth-last-child(n+#{$lasts+1}),
+    td:nth-child(n+#{$nums+1}):nth-last-child(n+#{$lasts+1}), {
+        display:none;
+    }
+
+ }
+ // box-body
+}
+
+@mixin custom-by-type($type) {
+    .box-header>.box-tools {
+        position: relative;
+        margin:5px;
+        &.right-bottom{
+          top:0px;
+          bottom:initial;
+          right:initial;
+        }
+    }
+
+    .dl-horizontal dd{
+        margin:0px !important;
+        padding:5px 10px;
+        background-color:#e2e2e2;
+    }
+    .card-pull-left{
+
+    }
+    #layoutContent {
+      > .row > .col-xs-12.horz-form {
+        .form-group {
+          width: 100%;
+        }
+      }
+    }
+    .row .box{
+      min-height: fit-content;
+    }
+    .query-item.pull-left{
+      clear:both;
+    }
+}
+
+@media only screen and (max-width: 800px) {
+    @include skip-tb-by(4, 1);
+    @include custom-by-type(1);
+    @include generate-input-widthes(0);
+
+    .query .input-daterange {
+      max-width: 220px;
+      padding-top: 5px;
+    }
+}
+
+@media only screen and (max-width: 640px) {
+    @include skip-tb-by(3, 1);
+    @include custom-by-type(2);
+    @include generate-input-widthes(0);
+
+    $iboxh: 80;
+    .info-box {
+      min-height: #{$iboxh}px;
+      .info-box-icon {
+        height: #{$iboxh}px;
+        width: 50px;
+        line-height: #{$iboxh}px;
+        i.fa{
+          font-size: #{$iboxh/3}px;
+        }
+      }
+      .info-box-content{
+        padding: 5px;
+        margin-left: 50px;
+      }
+    }
+}

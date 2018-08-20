@@ -1,0 +1,187 @@
+# == Schema Information
+#
+# Table name: admin_logs
+#
+#  id           :integer          not null, primary key
+#  classify     :string(50)
+#  title        :string(255)
+#  content      :string(255)
+#  result       :text(65535)
+#  process      :string(50)
+#  ctrl_at      :datetime
+#  admin_id     :integer
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  logable_id   :integer
+#  logable_type :string(255)
+#  status       :integer
+#
+# Indexes
+#
+#  index_admin_logs_on_admin_id    (admin_id)
+#  index_admin_logs_on_logable_id  (logable_id)
+#  index_admin_logs_on_status      (status)
+# =>
+
+class AdminLog < ApplicationRecord
+  attr_accessor :file
+  has_one :attachment, as: :attachmentable # 附件
+
+  extend Enumerize
+  enumerize :classify, in: %i[import export update create delete financial_import financial_export financial_create financial_update financial_delete], default: :import
+  enumerize :status, in: { abort: -1, pending: 0, processing: 1, done: 2 }, default: :pending
+
+  belongs_to :admin # 所属管理者
+  belongs_to :logable, polymorphic: true, optional: true # 针对客户/理财的修改使用, 导入则不用
+  has_many :results, class_name: :AdminLogResult, dependent: :destroy
+
+  scope :by_query, ->(query) { where(query) unless query.blank? }
+  scope :classify_at, ->(ty) { where(classify: ty.to_sym) }
+  scope :status_at, ->(st) { where(status: st.to_sym) }
+
+  scope :last_import_at, ->(adm, ty) do
+    if adm.blank? || ty.blank?
+      where('1 = 2')
+    else
+      classify_at(ty).status_at(:processing).where(admin: adm).limit(1)
+    end
+  end
+  scope :last_customer, ->(adm) { last_import_at(adm, :import) }
+  scope :last_financial, ->(adm) { last_import_at(adm, :financial_import) }
+
+  def self.import_options
+    classify.options.select { |x| x[1] == :import.to_s || x[1] == :financial_import.to_s }
+  end
+
+  # 增加进度
+  def up_process(done, total, succs, fails)
+    self.process = [done, total, succs, fails].join(',')
+  end
+
+  # 获取进度
+  # [done, total, succs, fails]
+  def process_array
+    return [1, 0, 0, 0] if process.blank?
+    a, b, c, d = process.split(',').map { |x| x.to_i }
+    a = 1 if a <= 0
+    [a, b, c, d]
+  end
+
+  def process_percents
+    done, total, succs, fails = process_array
+
+    return [0, 0, 0] if total <= 0
+
+    p_done = ((done.to_f / total.to_f) * 100).to_i
+    p_succs = ((succs.to_f / total.to_f) * 100).to_i
+    p_fails = ((fails.to_f / total.to_f) * 100).to_i
+
+    [p_done, p_succs, p_fails]
+  end
+
+  def process_msg
+    done, total, succs, fails = process_array
+    p_done = total > 0 ? ((done.to_f / total.to_f) * 100).to_i : 0
+    if status.pending? or status.processing?
+      I18n.t('admin.import.process_msg', percent: p_done, done: done, total: total, succs: succs, fails: fails)
+    elsif status.done?
+      I18n.t('admin.import.process_done', done: done, succs: succs, fails: fails)
+    end
+  end
+
+  def can_process?
+    return true if self.status.pending?
+    if self.status.done?
+      done, total, succs, fails = self.process_array
+      return true if done < total
+      # return true if succs <= 0
+    end
+    false
+  end
+
+  def can_reset?
+    done, total, succs, fails = self.process_array
+    self.status.done? && succs <= 0
+  end
+
+  ##
+  #
+  def reset_result!(msg, level = :info)
+    rs = create_log_result!(pos: 0, row: nil, msg: msg, level: level)
+    results = [rs]
+    # self.result = msg
+  end
+
+  def append_result(msg, level='info')
+    new_log_result(pos: 0, msg: msg, level: level)
+  end
+
+  def append_fail_msg(curr, row, msg, level = :error)
+    new_log_result(pos: curr, row: row, msg: msg, level: level)
+  end
+
+  def add_fail_msg!(curr, row, msg, level = :error)
+    create_log_result!(pos: curr, row: row, msg: msg, level: level)
+  end
+
+  def new_log_result(attrs)
+    pos = attrs[:pos].to_i
+    if pos > 0
+      rs = results.find_by_pos(pos)
+      unless rs.blank?
+        rs.attributes = attrs
+        return rs
+      end
+    end
+    results.new(attrs)
+  end
+
+  def create_log_result!(attrs)
+    rs = new_log_result(attrs)
+    rs.save
+    rs
+  end
+
+  ########
+
+  @@log_sample = {}
+  def get_sample_data
+    rs = {}
+    case classify.to_sym
+    when :import
+      rs = @@log_sample[classify]
+      if rs.blank?
+        rs = {
+          title: '客户信息导入模板.xls',
+          url:  "/uploads/sample/customer.xls",
+          data:
+          [
+            %w(镇区 网点 网点机构号 居民姓名 性别 证件号 联系电话 小区/村名 联系地址 卡号 定期 保险 理财 其他标签 所属客户经理),
+            %w(凤岗 雁田 44005189 李四1号 女 440112198406107211 13543739682 X小区 xy地址 44000000000001 2017-12-10,1年,10万 2017-5-20,200天 2017-5-20,3年 商家,烟草 管理员),
+            %w(凤岗 雁田 44005189 王五1号 男 440112198110213090 13543739683 X小区 xyz地址 44000000000002 2017-12-10,2年 2017-5-20,2018-5-20,5万 2017-5-20,2年,3.5万 商家,烟草 管理员)
+          ]
+        }
+        @@log_sample[classify] = rs
+      end
+
+    when :financial_import
+      rs = @@log_sample[classify]
+      if rs.blank?
+        rs = {
+          title: '理财产品导入模板.xls',
+          url:  "/uploads/sample/financial.xls",
+          data: [
+            %w(开始 结束 认/申购 产品简称 额度（亿） 期限（天） 客户预期年收益率 销售服务费率 起点 状态备注 发行范围 属性),
+            %w(2016-1-30 2016-2-1 理财产品 邮银财富·债券2016年第100期 3 80 4.20% 5 所有渠道 - 全国 -),
+            %w(2016-1-30 2016-2-1 理财产品 邮银财富·债券2016年第101期 4 182 4.20% 5 电子渠道 - 全国 重要),
+            %w(2016-1-30 2016-2-1 理财产品 邮银财富·债券2016年第102期 5 100 4.20% 5 电子渠道夜行 - 广东 -),
+            %w(2016-1-30 2016-2-1 理财产品 邮银财富·债券2016年第103期 6 365 4.20% 5 手机渠道 - 东莞 重要),
+          ]
+        }
+        @@log_sample[classify] = rs
+      end
+    end
+    rs
+  end
+  # 增加错误日志
+end

@@ -1,0 +1,24 @@
+@import "bootstrap/mixins/clearfix";
+
+$captcha-field-height: 34px;
+
+.simple-captcha {
+  margin-bottom: 15px;
+  @include clearfix;
+
+  .captcha-field {
+    float: left;
+    input {
+      height: $captcha-field-height;
+      width: 120px;
+      padding: 0 10px;
+    }
+  }
+  .captcha {
+    float: left;
+    img {
+      width:100px;
+      height: $captcha-field-height;
+    }
+  }
+}

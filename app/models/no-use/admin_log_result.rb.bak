@@ -1,0 +1,32 @@
+# == Schema Information
+#
+# Table name: admin_log_results
+#
+#  id           :integer          not null, primary key
+#  pos          :integer
+#  row          :text(65535)
+#  msg          :text(65535)
+#  admin_log_id :integer
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  level        :integer
+#
+# Indexes
+#
+#  index_admin_log_results_on_admin_log_id  (admin_log_id)
+#
+
+class AdminLogResult < ApplicationRecord
+  belongs_to :admin_log
+
+  extend Enumerize
+  enumerize :level, in: { debug: -1, info: 0, warning: 1, error: 2 }, default: :info
+
+  default_scope { where('level > ?', AdminLogResult.level.debug.value).order(:updated_at) }
+
+  def content
+    return msg if pos <= 0
+
+    I18n.t('admin.import.append_level_msg', level: level.text, curr: pos, msg: msg, row: row)
+  end
+end

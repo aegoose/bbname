@@ -1,0 +1,64 @@
+/ .row
+  .col-xs-8
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t("new")
+          = t('models.admin_log')
+          | &nbsp;&nbsp;
+          = link_to backend_admin_logs_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+      = render 'form'
+= content_for :title
+  | 导入客户数据
+.row
+  .col-md-12.horz-form
+    .box.box-primary.fixed.mb-5
+      .box-header.with-border
+        / h3
+        ul.nav.nav-wizard
+          li.active
+            =link_to "上传客户文件", new_customer_backend_admin_logs_path
+          li
+            =link_to "处理上传数据", "#step1"
+          li
+            =link_to "完成"
+          li.pull-right
+            = link_to backend_admin_logs_path do
+              span.fa.fa-chevron-left=t('back')
+        / .box-tools.right-bottom.query
+          / = link_to edit_backend_admin_log_path(@admin_log), class: 'btn btn-primary btn-sm' do
+            span.fa.fa-edit=t('edit')
+          | &nbsp;
+          = link_to backend_admin_logs_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+
+      = simple_form_for([:backend,@admin_log], wrapper: :horizontal_form, :html => { :multipart => true } ) do |f|
+        .box-body
+          .col-md-10.h30
+          .col-md-10.h50
+          .col-md-10
+            /= f.error_notification
+            / = render 'layouts/error_tip'
+            = f.input :classify, as: :hidden
+            .form-group
+              .col-sm-3
+              .col-sm-8
+                = f.input_field :title, placeholder: "手工输入一个导入标题", class: "form-control"
+            .form-group
+              .col-sm-3
+              .col-sm-8
+                  .btn.btn-lg.btn-success.fileinput-button.fileinput-large
+                    i.fa.fa-pencil
+                    span
+                     | 选择一个文件进行上传
+                    = f.input_field :file, as: :file, accept: ".xls,.csv", data: {upexcel: "1"}
+            / = f.submit "上传文件", class: 'btn btn-primary'
+            / = f.input :title
+            / = f.input :content
+          / = f.input :result
+          .col-md-10.h100
+        .box-footer
+          .col-md-10
+            .col-sm-3
+            .col-sm-8

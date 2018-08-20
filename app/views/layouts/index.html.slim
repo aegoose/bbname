@@ -1,0 +1,10 @@
+doctype html
+html
+  head
+    title
+      | BABY 宝宝取名
+    = csrf_meta_tags
+    = stylesheet_link_tag 'index', media: 'all', 'data-turbolinks-track' => 'false'
+    = javascript_include_tag 'index', 'data-turbolinks-track' => 'false'
+  body
+    = yield

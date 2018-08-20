@@ -1,0 +1,42 @@
+.row
+  .col-md-12.horz-form
+    /= f.error_notification
+    / = render 'layouts/error_tip'
+    / .panel-group#accordion[role="tablist" aria-multiselectable="true"]
+    .panel.panel-default.box.box-primary.fixed.mb-5
+      .panel-heading#headOne[role="tab"]
+        h4.panel-title
+          a[role="button" data-toggle="collapse" data-parent="#accordion" href="#bodyOne" aria-expanded="true" aria-controls="bodyOne"]
+            | 客户信息
+      .panel-collapse.collapse.in#bodyOne[role="tabpanel" aria-labelledby="headOne"]
+        - gotoPath = @customer.new_record? ? edit_backend_customer_path(0) : ''
+        = simple_form_for [:backend,@customer], wrapper: :horizontal_form, data: {toggle: :validator, remote: true, type: :json, gotopath: "#{gotoPath}" } do |f|
+          .panel-body.box-body
+            .col-md-10
+              = f.input :branch_id, collection:Branch.all, label_method: :name, value_method: :id, required:true, include_blank: qr_t("query.customer.by_branch")
+              = f.input :assets_level, as: :radio_buttons, wrapper: :horizontal_radio_and_checkboxes, input_html: {class: "inp-x"}
+              = f.input :sex, as: :radio_buttons, wrapper: :horizontal_radio_and_checkboxes
+              = f.input :name, required:true
+              = f.input :id_card, required:true
+              = f.input :tel, required:true
+              hr/
+              = f.input :tags
+              = f.input :hobby
+              = f.input :car_no
+              = f.input :area_zone
+              = f.input :post_code
+              = f.input :address
+              = f.input :remark, input_html: {class: "mh100"}
+
+          .box-footer
+            .col-md-10
+              .col-sm-3
+              .col-sm-9
+                = f.submit class: 'btn btn-primary'
+                | &nbsp; &nbsp;
+                = link_to backend_customers_path, class: 'btn btn-default' do
+                  span.fa.fa-chevron-left=t('back')
+
+
+    - unless @customer.new_record?
+      / 列出本用户有效的产品

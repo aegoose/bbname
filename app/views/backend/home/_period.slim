@@ -1,0 +1,22 @@
+
+
+
+  - ty, dayat = product.day_at_type
+  - case ty
+  - when :today
+    - dstr = t('admin.customer_product.today')
+    span.text-danger title="#{dstr}" data-toggle="tooltip" data-placement="top"
+      i.fa.fa-lock.mr-2
+        span = product.period_desc
+        span.mr-10
+  - when :near
+    - dstr = t('admin.customer_product.days_at', days: dayat)
+    span.text-warning title="#{dstr}" data-toggle="tooltip" data-placement="top"
+      i.fa.fa-lock.mr-2
+        span = product.period_desc
+        span.mr-10
+  - else
+    span.text-muted
+      i.fa.fa-lock.mr-2
+        span = product.period_desc
+        span.mr-10

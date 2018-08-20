@@ -1,0 +1,21 @@
+/ h2 Edit #{resource_name.to_s.humanize}
+- content_for :title
+  | 个人账号中心
+.row
+  .col-md-12
+    = render 'layouts/error_tip'
+  .col-md-12
+    .box.box-primary.horz-form
+      .box-header.with-border
+        h3 修改密码
+      = simple_form_for resource, as: resource_name, url: update_admin_password_path,  wrapper: :horizontal_form, html: { method: :put }, data: {toggle: :validator} do |f|
+        .box-body.with-border
+          .col-md-10
+            = f.input :current_password, required: true
+            = f.input :password, required: true
+            = f.input :password_confirmation, required: true
+        .box-footer
+          .form-group.col-md-10
+            .col-sm-3
+            .col-sm-9
+              = f.submit t('helpers.submit.admin.edit'), class: 'btn btn-primary'

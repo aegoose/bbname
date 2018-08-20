@@ -1,0 +1,47 @@
+.row[data-process-type="#{@admin_log.classify}#{@admin_log.id}" data-process-status="#{@admin_log.status.done? ? 1 : 0}" data-process-url="#{refresh_up_process_url}"]
+  .col-md-12.horz-form
+    .box.box-primary.fixed.mb-5
+      .box-header.with-border
+        / h3
+        = render partial: 'nav_wizard', locals: {admin_log: @admin_log}
+      .box-body.mh200
+        .h20
+        - percents = @admin_log.process_percents
+        .form-group.mh150
+          .col-sm-1
+          .col-sm-10
+            / textarea.text-muted.well.well-sm.inp-xxxl.mh200[readonly placeholder="处理中..."]
+              = @admin_log.result
+            pre.text-muted[class="#{@admin_log.status.done? ? '' : 'process-result' }"]
+              -if @admin_log.status.done?
+                -if @admin_log.results.blank?
+                  p 完成！
+                - else
+                  - @admin_log.results.each do |x|
+                    p class="log #{x.level}"
+                      = x.content
+                  / - @admin_log.result.split("\n")&.each do |x|
+                    - unless x.blank?
+                      p = x
+                p.alert.alert-success.padding-5.mt-10.mb-0
+                  i.icon.fa.fa-check
+                  = @admin_log.process_msg
+              -else
+                - @admin_log.results.each do |x|
+                  p class="log #{x.level}"
+                    = x.content
+                / -unless @admin_log.result.blank?
+                  -@admin_log.result.split("\n")&.each do |x|
+                    - unless x.blank?
+                      p = x
+                p.alert.alert-success.padding-5.mt-10.mb-0
+                  / .progress.margin-5.radius-5
+                    .progress-bar.progress-bar-striped.active[role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:#{percents[0]+100}%"]
+                  i.fa.fa-spinner.fa-pulse.fa-fw
+                  | 正在处理...
+                  = @admin_log.process_msg
+
+      .box-footer
+        .col-md-10
+          .col-sm-3
+          .col-sm-8

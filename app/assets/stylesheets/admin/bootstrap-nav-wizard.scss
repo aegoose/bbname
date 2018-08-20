@@ -1,0 +1,213 @@
+// https://github.com/acornejo/bootstrap-nav-wizard
+// http://acornejo.github.io/bootstrap-nav-wizard/
+// https://codepen.io/bencull/pen/CHqwn
+//
+// https://github.com/LeadDyno/bootstrap-nav-wizard
+$nw-bd-color: #d4d4d4;
+$nw-bg-color: #f9f9f9;
+$nw-active-color: #d9edf7;
+
+// #3a87ad;
+$nw-active-bg: darken(#428bca, 6.5%) !default;
+
+//#d9edf7;
+
+$nw-other-color: #999999;
+
+// #f9f9f9;
+$nw-other-bg: #ededed;
+$nw-hover-a-color: #428bca;
+$nw-done-color: $nw-active-bg;
+
+//#5cb85c; // #468847;
+
+$bnw-hover-bg: #f6fbfd;
+$bnw-hover-a-color: $nw-active-bg;
+$bnw-active-a-color: #999999;
+$bnw-active-bg: #ededed;
+
+ul.nav-wizard {
+  background-color: $nw-bg-color;
+  border: 1px solid $nw-bd-color;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  *zoom: 1;
+  position: relative;
+  overflow: hidden;
+
+  &:before {
+    display: block;
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 46px;
+    height: 47px;
+    border-top: 1px solid $nw-bd-color;
+    border-bottom: 1px solid $nw-bd-color;
+    z-index: 11;
+    content: " ";
+  }
+
+  &:after {
+    display: block;
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 138px;
+    height: 47px;
+    border-top: 1px solid $nw-bd-color;
+    border-bottom: 1px solid $nw-bd-color;
+    z-index: 11;
+    content: " ";
+  }
+
+  li {
+    position: relative;
+    float: left;
+    height: 46px;
+    display: inline-block;
+    text-align: middle;
+    padding: 0 20px 0 30px;
+    margin: 0;
+    font-size: 16px;
+    line-height: 46px;
+
+    a {
+      color: $nw-done-color;
+      padding: 0;
+
+      &:hover {
+        color: $nw-hover-a-color;
+        background-color: transparent;
+      }
+    }
+
+    &:before {
+      position: absolute;
+      display: block;
+      border: 24px solid transparent;
+      border-left: 16px solid $nw-bd-color;
+      border-right: 0;
+      top: -1px;
+      z-index: 10;
+      content: '';
+      right: -16px;
+    }
+
+    &:after {
+      position: absolute;
+      display: block;
+      border: 24px solid transparent;
+      border-left: 16px solid $nw-bg-color;
+      border-right: 0;
+      top: -1px;
+      z-index: 10;
+      content: '';
+      right: -15px;
+    }
+
+    &.active {
+      color: $nw-active-color;
+      background: $nw-active-bg;
+
+      &:after {
+        border-left: 16px solid $nw-active-bg;
+      }
+
+      a {
+        color: $nw-active-color;
+        background: $nw-active-bg;
+
+        &:active, &:visited, &:focus {
+          color: $nw-active-color;
+          background: $nw-active-bg;
+        }
+      }
+    }
+  }
+
+  .active ~ li {
+    /*后面的li样式*/
+    color: $nw-other-color;
+    background: $nw-other-bg;
+
+    &:after {
+      border-left: 16px solid $nw-other-bg;
+    }
+
+    a {
+      color: $nw-other-color;
+      background: $nw-other-bg;
+
+      &:active, &:visited, &:focus {
+        color: $nw-other-color;
+        background: $nw-other-bg;
+      }
+    }
+  }
+
+  &.nav-wizard-backnav {
+    li:hover {
+      color: $bnw-hover-a-color;
+      background: $bnw-hover-bg;
+
+      &:after {
+        border-left: 16px solid $bnw-hover-bg;
+      }
+
+      a {
+        color: $bnw-hover-a-color;
+        background: $bnw-hover-bg;
+
+        &:active, &:visited, &:focus {
+          color: $bnw-hover-a-color;
+          background: $bnw-hover-bg;
+        }
+      }
+    }
+
+    .active ~ li {
+      color: $bnw-active-a-color;
+      background: $bnw-active-bg;
+
+      &:after {
+        border-left: 16px solid $bnw-active-bg;
+      }
+
+      a {
+        color: $bnw-active-a-color;
+        background: $bnw-active-bg;
+
+        &:active, &:visited, &:focus {
+          color: $bnw-active-a-color;
+          background: $bnw-active-bg;
+        }
+      }
+    }
+  }
+}
+
+// @media only screen and (max-width: 800px) {
+@media only screen and (max-width: 640px) {
+  .box-header {
+    position: initial;
+
+    ul.nav-wizard {
+      li {
+        // padding: 0 0px 0 20px;
+        padding: 0 16px 0 20px;
+        font-size: 14px;
+
+        &.pull-right {
+          display: none;
+
+          // position:absolute;
+
+        }
+      }
+    }
+  }
+}
+
+// 0 0px 0 20px

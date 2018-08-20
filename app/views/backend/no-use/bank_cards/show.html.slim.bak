@@ -1,0 +1,28 @@
+.row
+  .col-xs-8
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.bank_card')
+          = t('info')
+          | &nbsp; &nbsp;
+          = link_to edit_backend_bank_card_path(@card), class: 'btn btn-primary btn-sm' do
+            span.fa.fa-edit=t('edit')
+          | &nbsp;
+          = link_to backend_bank_cards_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+      .box-body
+        dl.dl-horizontal
+          dt
+            | Name:
+          dd
+           = @card.card_no
+          dt
+            | Depth:
+          dd
+           = @card.card_type.text
+          dt
+            | Seq:
+          dd
+           = @card.customer.name
+      .box-footer

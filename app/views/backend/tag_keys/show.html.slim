@@ -1,0 +1,25 @@
+.row
+  .col-xs-8
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.admin_tag_key')
+          = t('info')
+          | &nbsp; &nbsp;
+          - if policy(:tag_key).edit?
+            = link_to edit_backend_tag_key_path(@admin_tag_key), class: 'btn btn-primary btn-sm' do
+              span.fa.fa-edit=t('edit')
+            | &nbsp;
+          = link_to backend_tag_keys_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+      .box-body
+        dl.dl-horizontal
+          dt
+            | Name:
+          dd
+           = @admin_tag_key.name
+          dt
+            | Catg:
+          dd
+           = @admin_tag_key.catg_id
+      .box-footer

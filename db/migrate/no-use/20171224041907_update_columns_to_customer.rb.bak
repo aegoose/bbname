@@ -1,0 +1,50 @@
+class UpdateColumnsToCustomer < ActiveRecord::Migration[5.1]
+  def change
+    remove_index :customers, column: :company_name
+    remove_columns :customers, :interest, :education, :qq, :wechat, :source_from, :priority, :job_title, :company_name, :company_nature, :company_scale, :office_tel, :office_fax, :office_address, :office_post_code
+
+    change_table :customers do |t|
+      t.string :id_card, limit: 50
+      t.string :area_zone, limit: 100
+      t.integer :assets_level
+      t.integer :branch_id
+      t.integer :admin_id
+      t.integer :fix_product_id
+      t.datetime :fix_due_at
+      t.integer :insure_product_id
+      t.datetime :insure_due_at
+      t.integer :financial_product_id
+      t.datetime :financial_due_at
+      t.integer :last_import_id
+      t.datetime :last_import_at
+    end
+    ## add_column :customers, :name, :string, limit: 50
+    ## add_column :customers, :sex, :integereger, limit: 2
+    ## add_column :customers, :birthday, :datetime
+    ## add_column :customers, :tel, :string, limit: 30
+    ## add_column :customers, :province_id, :string
+    ## add_column :customers, :city_id, :integer
+    ## add_column :customers, :distinct_id, :integer
+    ## add_column :customers, :remark, :text
+    ## add_column :customers, :address, :string, limit: 200
+    ## add_column :customers, :tags, :string, limit: 100
+
+    # add_column :customers, :id_card, :string, limit: 50
+    # add_column :customers, :area_zone, :string, limit: 100
+    # add_column :customers, :assets_level, :integer
+    # add_column :customers, :branch_id, :integer
+    # add_column :customers, :admin_id, :integer
+    # add_column :customers, :fix_product_id, :integer
+    # add_column :customers, :fix_due_at, :datetime
+    # add_column :customers, :insure_product_id, :integer
+    # add_column :customers, :insure_due_at, :datetime
+    # add_column :customers, :financial_product_id, :integer
+    # add_column :customers, :financial_due_at, :datetime
+    # add_column :customers, :last_import_id, :integer
+    # add_column :customers, :last_import_id, :datetime
+    # # add_index :customers, :name, unique: true
+    add_index :customers, :branch_id
+    add_index :customers, :admin_id
+
+  end
+end

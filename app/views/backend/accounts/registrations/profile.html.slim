@@ -1,0 +1,63 @@
+/ h2 Edit #{resource_name.to_s.humanize}
+- content_for :title
+  | 个人账号中心
+.row
+  .col-md-12
+    = render 'layouts/error_tip'
+  .col-md-6
+    .box.box-primary.fixed.horz-form
+      .box-header.with-border
+        h3 注册信息
+
+      = simple_form_for resource, as: resource_name, url: registration_path(resource_name),  wrapper: :horizontal_form, html: { method: :put }, data: {toggle: :validator} do |f|
+        .box-body.with-border
+          = f.input :username, required: true, autofocus: true
+          = f.input :name, required: true
+          = f.input :email, required: true
+        .box-footer
+          .form-group
+            .col-sm-3
+            .col-sm-9
+              = f.submit t('helpers.submit.admin.edit'), class: 'btn btn-primary'
+          .form-group[style="min-height:35px"]
+
+  .col-md-6
+    .box.box-primary.fixed.horz-form
+      .box-header.with-border
+        h3 联系信息
+      = simple_form_for resource, as: resource_name, url: registration_path(resource_name),  wrapper: :horizontal_form, html: { method: :put }, data: {toggle: :validator} do |f|
+        .box-body.with-border
+          = f.input :phone, required: true
+          = f.input :qq
+          = f.input :tel
+          = f.input :fax
+        .box-footer
+          .form-group
+            .col-sm-3
+            .col-sm-9
+              = f.submit t('helpers.submit.admin.edit'), class: 'btn btn-primary'
+  / .col-md-6
+    .box.box-primary.fixed.horz-form
+      .box-header.with-border
+        h3 修改密码
+      = simple_form_for resource, as: resource_name, url: update_admin_password_path,  wrapper: :horizontal_form, html: { method: :put }, data: {toggle: :validator} do |f|
+        .box-body.with-border
+          = f.input :current_password, required: true
+          = f.input :password, required: true
+          = f.input :password_confirmation, required: true
+        .box-footer
+          .form-group
+            .col-sm-3
+            .col-sm-9
+              = f.submit t('helpers.submit.admin.edit'), class: 'btn btn-primary'
+/ .row
+  .col-md-12
+    .box.box-primary.fixed.horz-form
+      .box-header.with-border
+        h3 个人业务描述
+      = simple_form_for resource, as: resource_name, url: registration_path(resource_name),  wrapper: :vertical_form, html: { method: :put }, data: {toggle: :validator} do |f|
+        .box-body.with-border
+          = f.input :desc, label: false, as: :text, input_html: { class: 'wy-editor', placeholder: t(:input_placeholder), "data-size": "xs" }
+        .box-footer
+          = f.submit t('helpers.submit.admin.edit'), class: 'btn btn-primary'
+

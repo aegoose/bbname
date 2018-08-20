@@ -1,0 +1,32 @@
+doctype html
+html
+  head
+    meta[charset="UTF-8"]
+    meta[content="webkit" name="renderer"]
+    meta[content="IE=edge" http-equiv="X-UA-Compatible"]
+    meta[content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' name='viewport']
+    /管理后台大多为表单页面,不需要turbolinks的cache
+    meta[name="turbolinks-cache-control" content="no-cache"]
+    title=t('admin.company_name')
+    = csrf_meta_tags
+    = stylesheet_link_tag 'admin-application', media: 'all' , 'data-turbolinks-track' => 'reload'
+    = javascript_include_tag 'admin-application', 'data-turbolinks-track' => "reload"
+    /[if lt IE 9]
+      = javascript_include_tag '/vendor/html5shiv.min.js'
+      = javascript_include_tag '/vendor/respond.min.js'
+      = javascript_include_tag '/vendor/ie-polyfill.js'
+body.login-page data={:action => action_name, :resource => controller_name, page: controller_name + '_' + action_name}
+  .wrapper#layout
+    - if content_for? :content
+      = yield :content
+    - else
+      = yield
+    #layout_footer
+  footer#footer.navbar-fixed-bottom.main-footer[style="text-align:center;margin-left:0"]
+    .pull-right.hidden-xs
+      |
+    strong
+      | CopyRight © 2015
+      a[href="#"]=t('admin.company_name')
+      | .
+    |  All rights reserved.

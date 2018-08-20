@@ -1,0 +1,86 @@
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.customer_product')
+          = t('list')
+          | &nbsp;&nbsp;
+        .box-tools.right-bottom.query
+          - if policy(CustomerProduct).new? && !@q_cus.blank?
+            = link_to new_backend_customer_product_path(customer_id: @q_cus), class: 'btn btn-primary btn-sm' , data: {modal: true} do
+              i.fa.fa-plus-square
+                = t('new')
+                = t('models.customer_product')
+        .query.clearfix
+          = simple_form_for :q, url: backend_customer_products_path, method: :get, wrapper: :inline_form do |f|
+            / = simple_form_for @q, url: backend_customer_products_path, method: :get, class: "query  form-inline", wrapper: :inline_form do |f|
+            - unless @q_cus.blank?
+              .query-item.pull-left.bg-primary.query-label
+                = f.hidden_field :customer_id, value: @q[:customer_id]
+                .label
+                  | 当前客户:
+                  = @q_cus.name || "不存在"
+                a.label data-query="customer_id" data-close="#{@q_cus.id}"
+                  i.fa.fa-times-circle-o
+            - else
+              .query-item.pull-left
+                = f.input :key, :placeholder => "输入客户名", input_html: { value: @q[:key] }
+            .query-item.pull-left
+              = f.input :classify, as: :select, collection: CustomerProduct.classify.options, include_blank: '选择类型', selected: @q[:classify]
+            / .query-item.pull-left
+              = f.input :status, as: :select, collection: CustomerProduct.status_types, include_blank: '状态类型', selected: @q[:status]
+            .query-item.pull-left
+              .form-group.clearfix
+                = label :q, :time_start, "到期日期：", class: 'h35 mb-0'
+                .pull-right.input-group.input-daterange.inp-m.mt-2
+                  = text_field :q, :time_start, class: 'form-control input-sm', value: @q[:time_start], autocomplete: "off"
+                  .input-group-addon -
+                  = text_field :q, :time_stop, class: 'form-control input-sm', value: @q[:time_stop], autocomplete: "off"
+            / .query-item.pull-left
+              = f.button :submit, "查询"
+
+      .box-body.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              th ID
+              / th = t('activerecord.attributes.customer_product.classify')
+              th = t('activerecord.attributes.customer_product.period')
+              th = t('activerecord.attributes.customer_product.customer_id')
+              th = t('activerecord.attributes.customer_product.begin_at')
+              th = t('activerecord.attributes.customer_product.end_at')
+              th = t('activerecord.attributes.customer_product.money')
+              th = t('activerecord.attributes.customer_product.income_rate')
+              th
+          tbody
+          - @customer_products.each do | customer_product |
+            tr
+            td = customer_product.id
+            td class="#{customer_product.customer.is_last_product?(customer_product) ? 'text-primary' : ''}"
+              = render partial: 'layouts/partial/product_period', locals: {product: customer_product}
+            td
+              .link-group
+                = link_to customer_product.customer.name, backend_customer_path(customer_product.customer)
+                = link_to backend_customer_products_path(customer_id: customer_product.customer), class: 'link-btn invisible ml-2' do
+                  i.fa.fa-search
+            td
+              =l(customer_product.begin_at, format: :cn_Ymd) unless customer_product.begin_at.blank?
+            td
+              =l(customer_product.end_at, format: :cn_Ymd) unless customer_product.end_at.blank?
+            td
+              = customer_product.money
+            td
+              = customer_product.income_rate
+            td.td-links
+              / - if policy(customer_product.customer).show?
+                = link_to t('show'), backend_customer_product_path(customer_product)
+              - if policy(customer_product.customer).edit?
+                = link_to t('edit'), edit_backend_customer_product_path(customer_product), data: {modal: true}
+              - if policy(customer_product.customer).destroy?
+                = link_to t('destroy'), backend_customer_product_path(customer_product), method: :delete, remote: true, data: { confirm: '确定要删除吗'}
+      .box-footer
+        .paging
+          = paginate @customer_products
+          = page_entries_info @customer_products
+

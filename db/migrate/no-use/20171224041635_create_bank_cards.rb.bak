@@ -1,0 +1,19 @@
+class CreateBankCards < ActiveRecord::Migration[5.1]
+  def change
+    create_table :bank_cards do |t|
+      t.integer :card_type
+      t.string :card_no, limit: 100
+      t.integer :customer_id
+      t.datetime :open_date
+      t.datetime :due_date
+      t.string :bank_of_deposit
+      t.integer :status
+
+      t.timestamps
+    end
+    add_index :bank_cards, :card_type
+    add_index :bank_cards, :card_no
+    add_index :bank_cards, :customer_id
+    add_index :bank_cards, :status
+  end
+end

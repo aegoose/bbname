@@ -1,0 +1,31 @@
+aside.control-sidebar.control-sidebar-light.main-sidebar#layoutSidebar
+  / 默认将菜栏展开
+  section.sidebar
+    =render_navigation renderer: AdminLteRenderer, expand_all: true
+  / section.sidebar
+    ul.sidebar-menu
+      li.header
+        | HEADER
+      li.active
+        a[href="#"]
+          i.fa.fa-link
+          span
+            | Link
+      li
+        a[href="#"]
+          i.fa.fa-link
+          span
+            | Another Link
+      li.treeview
+        a[href="#"]
+          i.fa.fa-link
+          span
+            | Multilevel
+          i.fa.fa-angle-left.pull-right
+        ul.treeview-menu.menu-open
+          li
+            a[href="#"]
+              | Link in level 2
+          li
+            a[href="#"]
+              | Link in level 2

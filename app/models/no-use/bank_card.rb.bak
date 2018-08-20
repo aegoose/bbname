@@ -1,0 +1,37 @@
+# == Schema Information
+#
+# Table name: bank_cards
+#
+#  id              :integer          not null, primary key
+#  card_type       :integer
+#  card_no         :string(100)
+#  customer_id     :integer
+#  open_date       :datetime
+#  due_date        :datetime
+#  bank_of_deposit :string(255)
+#  status          :integer
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#
+# Indexes
+#
+#  index_bank_cards_on_card_no      (card_no)
+#  index_bank_cards_on_card_type    (card_type)
+#  index_bank_cards_on_customer_id  (customer_id)
+#  index_bank_cards_on_status       (status)
+#
+
+class BankCard < ApplicationRecord
+  belongs_to :customer
+
+  validates :card_no, uniqueness:{case_sensitive: false}
+
+  extend Enumerize
+  enumerize :status, :in => {disabled:-2, expired:-1, inactive:0, actived:1}, default: :actived
+  enumerize :card_type, :in => {normal:0, credit_card:1}, default: :normal
+
+  scope :by_query, ->(query) { where(query) unless query.blank? }
+  scope :by_key, ->(qkey) { where('bank_cards.card_no like :qk', qk: "#{qkey}%") unless qkey.blank? }
+  scope :by_customer, -> (qkey) { joins(:customer).where("customers.name like ?", "%#{qkey}%") unless qkey.blank? }
+
+end

@@ -1,0 +1,6 @@
+class AddBranchIdToAdmin < ActiveRecord::Migration[5.1]
+  def change
+    add_column :admins, :branch_id, :integer
+    add_index :admins, :branch_id
+  end
+end

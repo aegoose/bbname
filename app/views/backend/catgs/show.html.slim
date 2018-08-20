@@ -1,0 +1,24 @@
+.row
+  .col-xs-8
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.catg')
+          = t('info')
+          | &nbsp; &nbsp;
+          = link_to edit_backend_catg_path(@catg), class: 'btn btn-primary btn-sm' do
+            span.fa.fa-edit=t('edit')
+          | &nbsp;
+          = link_to backend_catgs_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+      .box-body
+        dl.dl-horizontal
+          dt
+            | Name:
+          dd
+           = @catg.name
+          dt
+            | Seq:
+          dd
+           = @catg.seq
+      .box-footer

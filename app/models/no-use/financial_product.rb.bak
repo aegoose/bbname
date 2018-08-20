@@ -1,0 +1,58 @@
+# == Schema Information
+#
+# Table name: financial_products
+#
+#  id            :integer          not null, primary key
+#  classify      :string(50)
+#  apply_area    :string(50)
+#  name          :string(100)
+#  desc          :text(65535)
+#  total_limit   :float(24)
+#  min_amount    :float(24)
+#  begin_at      :datetime
+#  end_at        :datetime
+#  remark        :text(65535)
+#  status        :integer
+#  level         :string(50)
+#  admin_id      :integer
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  sale_rate     :float(24)
+#  annual_income :float(24)
+#  period        :integer
+#  source_from   :string(255)
+#
+# Indexes
+#
+#  index_financial_products_on_admin_id  (admin_id)
+#  index_financial_products_on_name      (name)
+#  index_financial_products_on_status    (status)
+#
+class FinancialProduct < ApplicationRecord
+  second_level_cache expires_in: 1.week # second_level_cache
+
+  validates :name, presence: true
+  validates :apply_area, presence: true
+  validates :total_limit, presence: true
+  # validates :begin_at, :presence => true
+  # validates :end_at, :presence => true
+
+  extend Enumerize
+  enumerize :status, in: { disabled: -3, expired: -2, inactive: -1, pending: 0, actived: 1 }, default: :actived
+  enumerize :apply_area, in: %i[china guangdong dongguan], default: :guangdong
+  enumerize :source_from, in: %i[all electron phone_bank elec_night], default: :all
+  enumerize :level, in: %i[importance normal], default: :normal
+  # enumerize :classify, :in => [:financial], default: :
+
+  scope :by_query, ->(query) { where(query) unless query.blank? }
+  scope :by_key, ->(qkey) { where('name like :qk', qk: "%#{qkey}%") unless qkey.blank? }
+
+  scope :begin_at, ->(d) { where(begin_at: d.beginning_of_day..d.end_of_day) unless d.blank? }
+  scope :end_at, ->(d) { where(end_at: d.beginning_of_day..d.end_of_day) unless d.blank? }
+  scope :product_at, ->(name, bdate, edate) do
+    bdate = bdate&.to_date
+    edate = edate&.to_date
+    return nil if name.blank? || bdate.blank? || edate.blank?
+    begin_at(bdate).end_at(edate).where(name: name).limit(1)
+  end
+end

@@ -1,0 +1,21 @@
+/ h2 修改密码
+.row
+  .col-xs-10
+    .box.box-primary
+      .box-header.with-border
+        h3
+          =t("admin.update_password_title")
+
+      = simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }) do |f|
+        = f.input :reset_password_token, as: :hidden
+        /= f.error_notification id:'login_error_message', class:'alert alert-danger'
+        .box-body.horz-form
+          = render 'layouts/error_tip'
+          / - if devise_mapping.confirmable? && resource.pending_reconfirmation?
+              p 等待邮箱验证: #{resource.unconfirmed_email}
+          = f.input :password, required: true
+          = f.input :password_confirmation, required: true
+        .box-footer
+          = f.submit t('helpers.submit.admin.update_password'), class:'btn btn-primary btn-lg'
+
+

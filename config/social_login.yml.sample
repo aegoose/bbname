@@ -1,0 +1,14 @@
+
+default: &default
+  wx_pub:
+    app_id: "wx6c70e176084e784c"
+    app_secret: "d6f749f783312e47cfbc8ee13f6ece6c"
+    host_url: "http://bbname.oocitizen.cn"
+    redirect_path: "/wechats/authorize"
+    enabled: true
+
+development:
+  <<: *default
+
+production:
+  <<: *default

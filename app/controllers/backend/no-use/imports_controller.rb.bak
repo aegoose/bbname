@@ -1,0 +1,199 @@
+module Backend
+
+  class ImportsController < Backend::ApplicationController
+    respond_to :html, :json
+
+    before_action :set_admin_log, only: [:do_reset, :do_process, :process_customer, :process_financial, :show]
+
+    add_breadcrumb I18n.t('navs.backend.imports'), :backend_imports_path
+
+    def index
+
+      authorize AdminLog, :import_index?
+
+      @qr = params.fetch(:query, {}).permit(:classify, :status, :customer_id)
+      @qr = @qr.select{|k,v| {k=>v} unless v.blank? }
+
+      ty = @qr[:classify]
+      ty = params[:classify] if ty.blank?
+      ty = :import if ty.blank? || ty.to_s != :financial_import.to_s
+      @qr[:classify] = ty
+      @admin_logs = policy_scope(AdminLog).by_query(@qr).order(ctrl_at: :desc).page(params[:page])
+
+    end
+
+    def show
+
+      authorize @admin_log, :import_show?
+
+      add_breadcrumb I18n.t('navs.backend.imports_show'), :backend_import_path
+      render :show
+    end
+
+    def new_customer
+      authorize AdminLog
+
+      add_breadcrumb I18n.t('navs.backend.imports_customer')
+      # FIXME: 如果检查到有正在进行的导入，直接跳到process_customers
+      last = AdminLog.last_customer(current_admin).first
+      redirect_to process_customer_backend_import_url(last) unless last.blank?
+
+      @admin_log = AdminLog.new(classify: :import)
+    end
+
+    def up_customer
+      update_data(:import)
+      @process_up = true
+      do_process
+      # # FIXME: 启动执行任务
+      # # ImportCustomersWorker.perform_async(@admin_log.id)
+      # ImportCustomersWorker.perform_in(5.seconds, @admin_log.id)
+
+      # respond_to do |format|
+      #   format.html { redirect_to process_customer_backend_import_url(@admin_log), notice: '上传成功!' }
+      #   format.json { render :update }
+      # end
+    end
+
+    def process_customer
+      add_breadcrumb I18n.t('navs.backend.imports_customer')
+      if params[:partial].blank?
+        render :process_customer
+      else
+        render :process_customer, layout: false
+      end
+    end
+
+    def customer_done
+      show
+    end
+
+    #===========================================
+
+    def new_financial
+
+      authorize AdminLog
+
+      last = AdminLog.last_financial(current_admin).first
+      redirect_to new_financial_backend_import_url(last) unless last.blank?
+      add_breadcrumb I18n.t('navs.backend.imports_financial')
+      @admin_log = AdminLog.new(classify: :financial_import)
+    end
+
+    def up_financial
+      update_data(:financial_import)
+      @process_up = true
+      do_process
+      # # FIXME: 启动执行任务
+      # # ImportCustomersWorker.perform_async(@admin_log.id)
+      # ImportFinancialsWorker.perform_in(5.seconds, @admin_log.id)
+
+      # respond_to do |format|
+      #   format.html { redirect_to process_financial_backend_import_url(@admin_log), notice: '上传成功!' }
+      #   format.json { render :update }
+      # end
+    end
+
+    def process_financial
+      add_breadcrumb I18n.t('navs.backend.imports_financial')
+      if params[:partial].blank?
+        render :process_financial
+      else
+        render :process_financial, layout: false
+      end
+    end
+
+    def financial_done
+      show
+    end
+
+    ########
+
+    def do_reset
+      if @admin_log.can_reset?
+        rs_msg = "[#{Time.now.strftime('%Y-%m-%d %H:%M:%S')}]由#{current_admin.name}进行重置处理, 原导入结果#{@admin_log.process_msg}"
+        if @admin_log.content.blank?
+          @admin_log.content = rs_msg
+        else
+          @admin_log.content << rs_msg
+        end
+        @admin_log.process = nil
+        @admin_log.result = nil
+        @admin_log.save
+        do_process
+        # @process_up = false
+      else
+        raise ApiCustomerErrors::ImportFileError.new('状态有误，不可重置')
+      end
+    end
+
+    def do_process
+      force = @process_up ? false : true
+
+      if @admin_log.status.processing? || @admin_log.status.pending? || force
+        if @admin_log.classify.import?
+          ImportCustomersWorker.perform_in(3.seconds, @admin_log.id)
+        elsif @admin_log.classify.financial_import?
+          ImportFinancialsWorker.perform_in(3.seconds, @admin_log.id)
+        else
+          raise ApiCustomerErrors::ImportFileError.new('类型有误')
+        end
+      else
+        raise ApiCustomerErrors::ImportFileError.new('状态有误')
+      end
+
+      notice = @process_up ? '上传成功' : '处理成功'
+
+      respond_to do |format|
+        format.html { redirect_to process_customer_backend_import_url(@admin_log), notice: notice }
+        format.json { render :update }
+      end
+    end
+
+    private
+
+    #
+    def update_data(classify = '')
+      pam = admin_log_params
+
+      raise ApiCustomerErrors::EmptyImportFile.new unless pam[:file]
+
+      if @admin_log.blank?
+        @admin_log = AdminLog.new(pam)
+      else
+        @admin_log.attributes = pam
+      end
+
+      @admin_log.attachment = Attachment.new(attachment: pam[:file], attachmentable: @admin_log) if @admin_log.attachment.blank?
+      @admin_log.admin = current_admin
+      # if adm.super?
+      #   # 超级管理员可以选择用户
+      #   adm = Admin.find_by_id(pam[:admin_id])
+      #   @admin_log.admin = adm unless adm.blank?
+      #   @admin_log.content << "\n[#{Time.now.to_s}]由#{current_admin.name}进行导入"
+      # end
+
+      # puts pam[:file].oraginal
+      (@admin_log.title = "导入#{pam[:file].original_filename}") if @admin_log.title.blank?
+      @admin_log.ctrl_at = Time.now
+      # @admin_log.logable = current_admin
+
+      @admin_log.classify = classify.to_sym unless classify.blank?
+      isOk = @admin_log.save
+
+      # @admin_log.title = "上传#{pam[:file][:original_filename]}"
+      raise ApiCustomerErrors::UploadFileError.new(@admin_log.error_messages) unless isOk
+    end
+
+    # Use callbacks to share common setup or constraints between actions.
+    def set_admin_log
+      @admin_log = AdminLog.find(params[:id])
+      authorize @admin_log
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def admin_log_params
+      params.require(:admin_log).permit(:classify, :title, :file)
+    end
+  end
+end

@@ -1,0 +1,6 @@
+class AddCarNoAndHobbyToCustomer < ActiveRecord::Migration[5.1]
+  def change
+    add_column :customers, :car_no, :string
+    add_column :customers, :hobby, :string
+  end
+end

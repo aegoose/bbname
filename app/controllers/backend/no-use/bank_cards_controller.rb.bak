@@ -1,0 +1,97 @@
+module Backend
+  class BankCardsController < Backend::ApplicationController
+    respond_to :html, :json
+    before_action :set_bank_card, only: [:show, :edit, :update, :destroy]
+
+    add_breadcrumb I18n.t('navs.backend.bank_cards'), :backend_bank_cards_path
+
+    # GET /branches
+    # GET /branches.json
+    def index
+      add_breadcrumb I18n.t('navs.backend.bank_cards_index'), :backend_bank_cards_path
+
+      @qr = params.fetch(:query, {}).permit(:key, :customer)
+      @qr = @qr.select{|k,v| {k=>v} unless v.blank? }
+      qkey = @qr.delete(:key)
+      qcustomer = @qr.delete(:customer)
+      @cards = policy_scope(BankCard).includes(:customer)
+        .by_query(@qr).by_key(qkey).by_customer(qcustomer).page(params[:page])
+
+      @qr[:key] = qkey
+      @qr[:customer] = qcustomer
+      # @cards = BankCard.all
+    end
+
+    # GET /branches/1
+    # GET /branches/1.json
+    def show
+    end
+
+    # GET /branches/new
+    def new
+      @customer = Customer.find(params[:customer_id])
+      @card = @customer.cards.new
+      # @card = BankCard.new
+      respond_modal_with @card, @customer
+    end
+
+    # GET /branches/1/edit
+    def edit
+      respond_modal_with @card
+    end
+
+    # POST /branches
+    # POST /branches.json
+    def create
+      update
+    end
+
+    # PATCH/PUT /branches/1
+    # PATCH/PUT /branches/1.json
+    def update
+      pam = card_params
+      is_new = false
+      if @card.blank?
+        @card = BankCard.new(pam)
+        is_new = true
+      else
+        @card.attributes = pam
+      end
+
+      isOk = @card.save
+
+      raise ApiUserErrors::BranchUpdateError.new(@card.error_messages) unless isOk
+
+      @card.customer.update_attribute(:card_no, @card.card_no) if is_new
+
+      respond_to do |format|
+        format.html { redirect_to backend_bank_cards_url, notice: '保存成功!' }
+        format.json { render :update }
+      end
+    end
+
+    # DELETE /branches/1
+    # DELETE /branches/1.json
+    def destroy
+      isOk = @card.destroy
+
+      raise ApiUserErrors::BankCardDeleteError.new(@card.error_messages) unless isOk
+
+      respond_to do |format|
+        format.html { redirect_to backend_bank_cards_url, notice: '删除成功' }
+        format.json { render :destroy }
+      end
+    end
+
+    private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_bank_card
+      @card = BankCard.find(params[:id])
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def card_params
+      params.require(:bank_card).permit(:card_no, :customer_id, :branch_no)
+    end
+  end
+end

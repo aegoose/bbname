@@ -1,0 +1,122 @@
+# require 'redis-namespace'
+
+module CustomerTagsable
+  extend ActiveSupport::Concern
+
+  # tag_hash
+
+  #######################################################
+  # 全局重置
+
+  included do
+
+    include Redis::Objects unless respond_to? :redis_objects
+
+    sorted_set :tags_hash #
+
+  end
+
+  def tags_hash_n(tag)
+    tghv = tags_hash[tag.to_s].to_i
+    return 0 if tghv < 0
+    tghv
+  end
+
+  def inc_tags_hash(tag)
+    tghv = tags_hash[tag.to_s].to_i
+    newv = (tghv < 0 ? 1 : tghv + 1)
+    tags_hash[tag.to_s]  = newv
+    newv
+  end
+
+  def dec_tags_hash(tag)
+    tghv = tags_hash[tag.to_s].to_i
+    newv = (tghv <= 0 ? 0 : tghv - 1)
+    tags_hash[tag.to_s] = newv
+    newv
+  end
+
+  def del_tags_hash(tag)
+    # puts "-----dec---------"
+    tags_hash.delete(tag)
+  end
+
+  def all_tags_hash
+    tags_hash.revrangebyscore(99999999, 1, with_scores: true)
+  end
+
+  def tags_hash_by_page(page = 1, limit = 20)
+    start = page * limit - 1
+    tags_hash.revrangebyscore(99999999, 1, with_scores: true, offset: start, limit: limit)
+  end
+
+
+  def reset_tags_hash(olds, news)
+    olds = olds.split(/[ |,]/) if olds && olds.is_a?(String)
+    olds.each { |tg| dec_tags_hash(tg) } if olds && olds.is_a?(Array)
+    news = news.split(/[ |,]/) if news && news.is_a?(String)
+    news.each { |tg| inc_tags_hash(tg) } if news && news.is_a?(Array)
+  end
+
+
+  # 单个实体的重置
+  def reset_customer_tags
+    logger.info "----#{self.class.name}<#{self.id}>.reset_customer_tags"
+    # reset cus count
+    customers.all.each do |cus|
+      # logger.info "------#{cus.id}--------"
+      self.reset_tags_hash(nil, cus.tags)
+    end
+    nil
+  end
+
+  class_methods do
+    def reset_customer_tags
+      # delete all cached
+      clear_all_tags
+
+      # puts "----#{self.name}.reset_customer_tags"
+      # reset all in instance
+      all.each { |adm| adm&.reset_customer_tags }
+      nil
+    end
+
+    def clear_all_tags
+      ns_rd = Redis::Namespace.new(self.name.downcase, redis: Redis::Objects.redis)
+      kys = ns_rd.keys('*tags_hash*')
+      ns_rd.del(kys) if kys.present?
+    end
+  end
+
+  #######################################################
+  # 扩展到 Customer
+
+  module ActionsForCustomer
+    extend ActiveSupport::Concern
+
+    included do
+      before_save do
+        @changed_tags = self.changes['tags'] || []
+      end
+
+      after_commit on: :create do
+        # puts '----ActionsForCustomer:create'
+        self.manager&.reset_tags_hash(nil, self.tags) if self.respond_to? :manager
+        self.branch&.reset_tags_hash(nil, self.tags) if self.respond_to? :branch
+      end
+
+      after_commit on: :destroy do
+        # puts '----ActionsForCustomer:destroy'
+        self.manager&.reset_tags_hash(self.tags, nil) if self.respond_to? :manager
+        self.branch&.reset_tags_hash(self.tags, nil) if self.respond_to? :branch
+      end
+
+      after_commit on: :update do
+        # puts '----ActionsForCustomer:update'
+        olds, news = @changed_tags
+        self.manager&.reset_tags_hash(olds, news) if self.respond_to? :manager
+        self.branch&.reset_tags_hash(olds, news) if self.respond_to? :branch
+      end
+    end
+  end
+end

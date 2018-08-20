@@ -1,0 +1,30 @@
+.row
+  .col-md-12.horz-form
+    .box.box-primary.fixed.mb-5
+      .box-header.with-border
+        h3
+          = t('new')
+          = t('models.admin_log')
+          | &nbsp; &nbsp;
+        .box-tools.right-bottom.query
+          / = link_to edit_backend_admin_log_path(@admin_log), class: 'btn btn-primary btn-sm' do
+            span.fa.fa-edit=t('edit')
+          | &nbsp;
+          = link_to backend_admin_logs_path, class: 'btn btn-default btn-sm' do
+            span.fa.fa-chevron-left=t('back')
+      = simple_form_for([:backend,@admin_log], wrapper: :horizontal_form, ) do |f|
+        /= f.error_notification
+        / = render 'layouts/error_tip'
+
+        .box-body
+          .col-md-10
+            = f.input :classify
+            = f.input :title
+            = f.input :content
+            = f.input :result
+
+        .box-footer
+          .col-md-10
+            .col-sm-3
+            .col-sm-9
+              = f.submit class: 'btn btn-primary'

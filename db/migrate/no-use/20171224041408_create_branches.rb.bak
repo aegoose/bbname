@@ -1,0 +1,14 @@
+class CreateBranches < ActiveRecord::Migration[5.1]
+  def change
+    create_table :branches do |t|
+      t.string :distinct_id, limit: 50
+      t.string :name, limit: 100
+      t.string :branch_no, limit: 50
+
+      t.timestamps
+    end
+    add_index :branches, :distinct_id
+    add_index :branches, :name, unique: true
+    add_index :branches, :branch_no, unique: true
+  end
+end

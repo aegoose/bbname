@@ -1,0 +1,68 @@
+-content_for :title
+  = t('models.admin')
+  | 管理
+
+.row
+  .col-xs-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.admin')
+          = t('list')
+          | &nbsp;&nbsp;
+        .box-tools.right-bottom.query
+            -if policy(:admin).new?
+              .query-item.pull-left
+                = link_to new_backend_admin_path, class: 'btn btn-sm btn-primary', data: {modal: true} do
+                  i.fa.fa-plus-square
+                    = t('new') 
+                    = t('models.admin')
+        .query.clearfix
+          = simple_form_for :query, url: backend_admins_path, method: :get, wrapper: :inline_form do |f|
+            .query-item.pull-left.inp-m
+              = f.input :key, placeholder: qr_t("query.admin.by_key"), input_html: {value: @qr[:key]}
+            / .query-item.pull-left.inp-m
+              = f.input :branch_id, collection:Branch.all, selected: @qr[:branch_id], label_method: :name, value_method: :id, include_blank: qr_t("query.admin.by_branch"), input_html:{ class: "query-select"}
+            .query-item.pull-left.inp-m
+              = f.input :status, collection:Admin.status.options, selected: @qr[:status], include_blank: qr_t("query.admin.by_status"), input_html:{ class: "query-select"}
+      .box-body.table-wrapper.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              th=t('activerecord.attributes.admin.username')
+              th=t('activerecord.attributes.admin.name')
+              th=t('activerecord.attributes.admin.email')
+              th=t('activerecord.attributes.admin.role')
+              th=t('activerecord.attributes.admin.created_at')
+              th=t('activerecord.attributes.admin.last_sign_in_at')
+              th=t('activerecord.attributes.admin.sign_in_count')
+              th=t('activerecord.attributes.admin.status')
+              th=t('th_links')
+          tbody
+          - @admins.each do | admin |
+            tr
+            td = link_to admin.username, backend_admin_path(admin)
+            td = link_to admin.name, backend_admin_path(admin)
+            td = link_to admin.email, backend_admin_path(admin)
+            td = admin.role&.text
+            td = l admin.created_at, format: :cn_YmdH
+            td
+              = l admin.last_sign_in_at, format: :cn_YmdH if admin.last_sign_in_at
+            td = admin.sign_in_count
+            td = admin.status.text
+            td
+              / = link_to t('show'), backend_admin_path(admin)
+              -if policy(:admin).edit?
+                = link_to t('edit'), edit_backend_admin_path(admin), data: {modal: true}
+                -if policy(:admin).edit_password?
+                  | &nbsp;|&nbsp;
+                  = link_to t('edit_password'), edit_backend_admin_path(admin, pwd: true), data: {modal: true}
+                -if policy(:admin).lock?
+                  | &nbsp;|&nbsp;
+                  = link_to t('lock'), lock_backend_admin_path(admin), method: :post, data: { confirm: '确定锁定吗? 锁定后用户无法登录！' }
+              -else
+                = link_to t('show'), backend_admin_path(admin)
+
+              / = link_to t('destroy'), backend_admin_path(admin), method: :delete, data: { confirm: '确定删除吗?' }
+      .box-footer
+        =paginate @admins

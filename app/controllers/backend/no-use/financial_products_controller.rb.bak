@@ -1,0 +1,101 @@
+module Backend
+  class FinancialProductsController < Backend::ApplicationController
+    respond_to :html, :json
+
+    before_action :set_financial_product, only: [:show, :edit, :update, :destroy]
+    add_breadcrumb I18n.t('navs.backend.financial_products'), :backend_financial_products_path
+
+    # GET /financial_products
+    # GET /financial_products.json
+    def index
+      add_breadcrumb I18n.t('navs.backend.financial_products_index'), :backend_financial_products_path
+
+      # qr = params[:q] || {}
+      qr = params.fetch(:q, {}).permit(:name_cont, :classify_eq, :source_from_eq, :apply_area_eq, :status_eq)
+      @q = policy_scope(FinancialProduct).ransack(qr)
+      q_where = @q.result # .includes(:customer)
+      @financial_products = q_where.page(params[:page])
+
+      # @financial_products = FinancialProduct.all.page(params[:page])
+      # @qr = params.fetch(:query, {}).permit(:key, :classify, :apply_area, :status, :begin_at, :end_at)
+      # qrkey = @qr.delete(:key)
+      # @customers = FinancialProduct.by_query(@qr).by_key(qrkey).page(params[:page])
+      # @qr[:key] = qrkey
+
+    end
+
+    # GET /financial_products/1
+    # GET /financial_products/1.json
+    def show
+      respond_modal_with @financial_product
+    end
+
+    # GET /financial_products/new
+    def new
+      authorize FinancialProduct
+
+      @financial_product = FinancialProduct.new
+      respond_modal_with @financial_product
+
+    end
+
+    # GET /financial_products/1/edit
+    def edit
+      respond_modal_with @financial_product
+    end
+
+    # POST /financial_products
+    # POST /financial_products.json
+    def create
+      update
+    end
+
+    # PATCH/PUT /financial_products/1
+    # PATCH/PUT /financial_products/1.json
+    def update
+      pam = financial_product_params
+      if @financial_product.blank?
+        @financial_product = FinancialProduct.new(pam)
+      else
+        @financial_product.attributes = pam
+      end
+      isOk = @financial_product.save
+
+      raise ApiCustomerErrors::FinancialProductUpdateError.new(@financial_product.error_messages) unless isOk
+
+      respond_to do |format|
+        format.html { redirect_to backend_financial_products_url, notice: '保存成功!' }
+        format.json { render :update }
+      end
+
+    end
+
+    # DELETE /financial_products/1
+    # DELETE /financial_products/1.json
+    def destroy
+      @financial_product.destroy
+      respond_to do |format|
+        format.html { redirect_to backend_financial_products_url, notice: '删除成功' }
+        format.json { head :destroy }
+      end
+    end
+
+    private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_financial_product
+      @financial_product = FinancialProduct.find(params[:id])
+
+      authorize @financial_product unless action_name == 'show'
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def financial_product_params
+      params.require(:financial_product).permit(
+        :name, :classify, :apply_area, :level,
+        :total_limit, :min_amount, :sale_rate, :annual_income, :period,
+        :begin_at, :end_at,
+        :source_from, :status, :desc
+      )
+    end
+  end
+end

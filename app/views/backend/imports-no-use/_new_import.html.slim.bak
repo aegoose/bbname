@@ -1,0 +1,53 @@
+.row
+  .col-md-12.horz-form
+    .box.box-primary.fixed.mb-5
+      .box-header.with-border
+        = render partial: 'nav_wizard', locals: {admin_log: @admin_log}
+      .box-header.with-border
+        = simple_form_for(@admin_log, url: up_process_url, wrapper: :horizontal_form, :html => { :multipart => true } ) do |f|
+          .h10
+          .h30
+          = f.input :classify, as: :hidden
+          .form-group
+            .col-sm-2
+            .col-sm-8
+              = f.input_field :title, placeholder: "手工输入一个导入标题", class: "form-control"
+          / - if policy(:menu).super?
+            .form-group
+              .col-sm-2
+              .col-sm-8
+                = f.input_field :admin_id, collection:Admin.with_role(:manager), selected: @admin_log.admin_id, label_method: :name, value_method: :id, include_blank: '选择一个用户', required:true, class: "form-control"
+          .form-group
+            .col-sm-2
+            .col-sm-8
+              .btn.btn-lg.btn-success.fileinput-button.fileinput-large
+                i.fa.fa-pencil
+                span
+                 | 选择一个文件进行上传
+                = f.input_field :file, as: :file, accept: ".xls,.csv,.xlsx", data: {upexcel: "1"}
+          .h50
+
+    - unless (arr = @admin_log.get_sample_data).blank?
+      .box.box-primary.fixed
+        .box-header.with-border.mt-5.mb-5.pt-0.pb-0
+          h4
+            i.fa.fa-info-circle
+              | &nbsp;导入模块说明
+          p.pl-15
+            span.text-muted 导入格式可参考以下表格的样例说明, 可下载表格模板文件
+            | &nbsp;
+            strong
+              = link_to arr[:title],arr[:url], target: "_blank", rel: "nofollow"
+        .box-body.ft-12.table-responsive.bg-gray-light
+          table.table.table-bordered
+            tr.bg-light-yellow
+              - arr[:data][0].each do |v|
+                th=v
+            - arr[:data][1..-1].each do |row|
+              tr.bg-white
+                - row.each do |v|
+                  td = v || "-"
+    - else
+      .h50
+
+

@@ -1,0 +1,17 @@
+.login-page
+  .login-box
+    .login-logo
+    .login-box-body
+      h4.login-box-msg 微信登录
+      = simple_form_for(resource, as: resource_name, url: wechat_v1_sign_up_path, html: {class: "no-turbolinks"} ) do |f|
+        = render 'layouts/error_tip'
+        .form-group.has-feedback
+          = f.input :login, required: true, autofocus: true, label: false
+          span.form-control-feedback
+            i.fa.fa-user
+        .form-group.has-feedback
+          = f.input :password, required: true, label: false
+          span.form-control-feedback
+            i.fa.fa-lock
+        .form-actions
+          = f.submit class: 'btn btn-primary btn-block btn-flat'

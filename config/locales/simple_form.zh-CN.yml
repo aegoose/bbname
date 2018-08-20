@@ -1,0 +1,130 @@
+# namespace := labels|hints|prompts
+# model := /<namespace>/<model>
+# action := no need controller
+# simple_form.{namespace}.{model}.{nested}.{action}.{attribute}
+# simple_form.{namespace}.{model}.{nested}.{attribute}
+# simple_form.{namespace}.{nested}.{action}.{attribute}
+# simple_form.{namespace}.{nested}.{attribute}
+# simple_form.{namespace}.defaults.{attribute}
+#
+# e.g. /admin/admins/sign_in f.input :email
+#      lookups:
+#           labels.admin_admin.new.email
+#           labels.admin_admin.emila
+#           labels.defaults.new.email
+#           labels.defaults.email
+
+zh-CN:
+  simple_form:
+    "yes": 'Yes'
+    "no": 'No'
+    required:
+      text: '必填'
+      mark: '*'
+      # You can uncomment the line below if you need to overwrite the whole required html.
+      # When using html, text and mark won't be used.
+      # html: '<abbr title="required">*</abbr>'
+    error_notification:
+      default_message: "输入有误，请重新输入正确的值:"
+    # labels:
+      # admin:
+        # email: '邮箱'
+        # username: '用户名'
+        # name: '姓名'
+        # password: '密码'
+        # remember_me: '记住我'
+      # customer_product:
+        # is_bind:
+          # title: "每个客户只绑定一个最新的产品，添加时可以选择替换"
+    hints:
+#      admin_admin:
+#        email: '输入邮箱'
+#        password: '输入密码'
+      sk_type:
+        show_type: '<b>文本类型</b>:输入文字内容;&nbsp;&nbsp;<b>数据类型</b>:输入整数/小数;&nbsp;&nbsp;<b>选择类型</b>:下拉选择值;&nbsp;&nbsp;<b>日期类型</b>:下拉选择日期.'
+    placeholders:
+      admin:
+        login: '输入用户名'
+        name: '输入中文名'
+        email: '输入邮箱'
+        phone: '输入手机号'
+        qq: '输入QQ号码'
+        tel: '输入办公电话'
+        fax: '输入传真号码'
+        current_password: '输入当前密码'
+        username: '输入登录用户名'
+        password: '输入密码'
+        password_confirmation: '再输入一次新密码'
+      financial_product:
+        classify: '输入分类，如认购/申购等'
+        apply_area: '选择发行范围'
+        name: '输入产品名'
+        desc: '输入产品描述'
+        total_limit: '输入额度(单位亿元)'
+        min_amount: '输入起点金(单位万元)'
+        sale_rate: '输入销售费率'
+        annual_income: '输入年收益%'
+        period: '输入期限(即存期,按天算)' # 即存期
+        begin_at: '选择开始日'
+        end_at: '选择结止日'
+        level: '级别' # 重要性
+        status: '选择状态'
+        source_from: '选择渠道'
+        remark: '输入备注'
+      customer:
+        name: '输入客户名'
+        tel: '输入手机号'
+        email: '输入邮箱号'
+        # priority: '选择重要性'
+        # qq: '输入联系QQ'
+        # wechat: '输入微信号'
+        # education: '输入教育程度，如本科/大专等'
+        # interest: '输入兴趣，如篮球/足球等'
+        birthday: '选择生日'
+        area: '选择地区'
+        address: '输入地址'
+        post_code: '输入邮编'
+        area_zone: '输入小区(村)'
+        assets_level: '选择资产级别'
+        id_card: '输入身份证'
+        tags: '输入标签'
+        hobby: '输入兴趣爱好'
+        car_no: '输入车牌号'
+        branch_id: '选择网点'
+
+        # job_title: '输入工作职责'
+        # company_name: '输入公司名称'
+        # company_nature: '输入公司的性质，如国企/私企/外企等'
+        # company_scale: '输入公司的规格，如大型/中型/小型，或输入员工数量'
+        # office_tel: '输入办公电话，11位数字以内'
+        # office_fax: '输入传真电话，11位数字以内'
+        # office_address: '输入公司地址'
+        # office_post_code: '输入公司邮编'
+      customer_product:
+        period_type: '选择类型'
+        begin_at: '选择开始日期'
+        end_at: '选择到期日期'
+        period: '输入存期, 可按年/月/天输入'
+        money: '输入金额'
+        income_rate: '输入利率%'
+
+    # include_blanks:
+    #   defaults:
+    #     age: 'Rather not say'
+    # prompts:
+    #   defaults:
+    #     age: 'Select your age'
+
+
+# buttons no with simple_form
+
+  helpers:
+    submit:
+      create: "创建%{model}" # global default
+      update: "保存%{model}" # global default
+      admin:
+        create: '登录'       # for special model
+        update: '注册'       # for special model
+        edit: '更新'
+        send_reset_password: '发送重置密码到我的邮箱'
+        update_password: '更新密码'

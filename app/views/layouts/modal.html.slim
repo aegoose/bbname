@@ -1,0 +1,17 @@
+.modal.fade#mainModal[tabindex="-1" role="dialog" aria-labelledby="mainModalLabel"aria-hidden="true"]
+  .modal-dialog.modal-dialog-centered.panel[role="document"]
+    .modal-content
+      .modal-header
+        button[type="button" class="close" data-dismiss="modal"]
+          span[aria-hidden="true"]
+            | &times;
+          span.sr-only
+            | Close
+        h4.modal-title#mainModalLabel
+          = yield :title if content_for? :title
+          | &nbsp;
+      .modal-body
+        = yield
+      - if content_for? :modal_buttons
+        .modal-footer
+          = yield :modal_buttons

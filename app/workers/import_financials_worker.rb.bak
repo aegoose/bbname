@@ -1,0 +1,174 @@
+# 理财产品导入处理
+class ImportFinancialsWorker
+  include Sidekiq::Worker
+  sidekiq_options retry: false, queue: :default, backtrace: 5
+  @@dists = {}
+  @@jobs = {}
+
+  def job_key
+    "#{@log_id}"
+  end
+
+  def ts
+    "[#{Time.now.strftime('%Y-%m-%d %H:%I')}] "
+  end
+
+  def perform(log_id)
+    @log_id = log_id
+
+    admlog = AdminLog.find_by_id(@log_id )
+
+    if admlog.blank?
+      logger.warn "[#{job_key}] 导入失败，记录不存在"
+      return
+    end
+
+    admfile = admlog.attachment.attachment.file
+    unless admfile.exists?
+      logger.warn "[#{job_key}] 导入失败，找不到导入数据的文件: #{admfile.path}"
+      return
+    end
+
+    jtime = @@jobs[@log_id ]
+    ntime = Time.now.to_i
+    if jtime && ntime - jtime < 3600 # 未超过1个小时
+      logger.info "#{job_key} 任务已存，无需要得复导入"
+      return
+    end
+
+    @@jobs[@log_id ] = ntime
+    import(admfile, admlog)
+    @@jobs.delete(@log_id )
+  end
+
+  def import(file, admlog)
+    spreadsheet = Roo::Spreadsheet.open(file.path, { csv_options: { encoding: Encoding::GB2312 } })
+    # open_spreadsheet(file)
+
+    # 开始  结束  认/申购  产品简称  额度（亿） 期限（天） 客户预期年收益率  销售服务费率  起点  状态备注  发行范围  属性
+    header = spreadsheet.row(1)
+    if header.length != 12
+      admlog.add_fail_msg!(0, '导入权限有误, 导入文档格式不正确！')
+      logger.error "[#{job_key}] 导入文档格式不正确(#{header&.join(',')})"
+      return
+    end
+
+    last_row = spreadsheet.last_row
+    done, total, succs, fails = admlog.process_array
+    total = last_row - 1
+    begin_row = done + 1
+
+    curr_adm = admlog.admin
+    if curr_adm.blank?
+      admlog.add_fail_msg!(done, '导入权限有误, 找不到当前导入人！')
+      logger.error "[#{job_key}] 导入权限有误, 找不到导入人(#{admlog.to_json})"
+      return
+    end
+
+    if done >= total
+      logger.info "[#{job_key}] 导入处理已完成：done:#{done}, total:#{total}, succs:#{succs}, fails:#{fails}, begin_row:#{begin_row}, last_row:#{last_row}"
+      admlog.update_attribute(:status, :done) # unless @test_flag # 非测试环境则更新状态
+      return
+    end
+
+    (begin_row..last_row).each do |i|
+      row = spreadsheet.row(i)
+      begin
+        begin_at = row[0]&.to_date # 开始日
+        end_at = row[1]&.to_date # 结止日
+        classify = row[2]&.to_s # 认/申购
+        pname = row[3]&.to_s # 产品简称
+        total_limit = row[4].to_f # 额度（亿）
+        period = row[5].to_i # 期限（天）
+        annual_income = get_rare(row[6]) # 客户预期年收益率
+        sale_rate = get_rare(row[7]) # 销售服务费率
+        min_amount = row[8].to_f # 起点(万)
+        source_from = get_source(row[9]) # 状态备注
+        apply_area = get_apply_area(row[10]) # 发行范围
+        level = get_level(row[11]) # 属性
+
+        raise '导入内容[产品简称/额度/开始日/结止日]不能为空' if pname.blank? || begin_at.blank? || end_at.blank? || total_limit <= 0 || period <= 0
+
+        prod = FinancialProduct.product_at(pname, begin_at, end_at).first
+        prod = FinancialProduct.new(name: pname, begin_at: begin_at, end_at: end_at) if prod.blank?
+
+        # logger.warn "----#{prod.attributes}, #{classify}, #{prod.classify}"
+
+        prod.classify = classify
+        prod.total_limit = total_limit
+        prod.period = period
+        prod.annual_income = annual_income
+        prod.sale_rate = sale_rate
+        prod.min_amount = min_amount
+        prod.source_from = source_from
+        prod.apply_area = apply_area
+        prod.level = level
+
+        isok = prod.save
+        unless isok
+          err = cus.errors.messages.map { |k, v| "#{k}#{v[0]}" }.join(',')
+          err = '保存理财产品到数据库出错' if err.blank?
+          raise err
+        end
+        succs += 1
+        logger.warn "[#{job_key}] 第#{done}条记录导入成功, 记录为#{row}"
+
+      rescue => e
+        fails += 1
+        admlog.append_fail_msg(done, row, e.message)
+        logger.warn "[#{job_key}] 第#{done}条记录导入失败(#{e.message}), 记录为#{row}], error: #{e.backtrace[0..5].join('      ')}"
+      end
+      admlog.up_process(done, total, succs, fails)
+      admlog.save
+      done += 1
+      # sleep(1.0)
+    end
+
+    admlog.append_result("上传处理完成, #{admlog.process_msg}")
+    admlog.status = :done
+    admlog.save
+  end
+
+
+
+  def get_rare(v)
+    return 0 if v.blank?
+    vv = v.to_s
+    return vv.to_f if /%$/.match? vv
+    return vv.to_f if vv.to_f > 1.0
+    vv.to_f * 100
+  end
+
+  def get_level(v)
+    case v
+    when /重要/
+      :importance
+    else # /东莞/,
+      :normal
+    end
+  end
+
+  def get_source(v)
+    case v
+    when /夜市/
+      :elec_night
+    when /^电子/, /电子渠道/
+      :electron
+    when /手机/
+      :phone_bank
+    else
+      :all
+    end
+  end
+
+  def get_apply_area(v)
+    case v
+    when /全国/
+      :china
+    when /广东/, /广州/, /深圳/
+      :guangdong
+    else # /东莞/,
+      :dongguan
+    end
+  end
+end

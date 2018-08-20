@@ -1,0 +1,20 @@
+# coding: utf-8
+# require 'chinese_pinyin'
+
+module CnPinyin
+  extend ActiveSupport::Concern
+
+  included do
+    # include ChinesePinyin::ClassMethods
+  end
+
+  # module ClassMethods
+  #   def kkkk
+  #     puts "sssssss------sssssssssss"
+  #   end
+  # end
+  def simple_letter_pinyin(cn_word)
+    Pinyin.t(cn_word) { |letters| letters[0].downcase }
+  end
+
+end

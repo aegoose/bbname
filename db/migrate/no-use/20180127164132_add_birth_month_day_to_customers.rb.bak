@@ -1,0 +1,6 @@
+class AddBirthMonthDayToCustomers < ActiveRecord::Migration[5.1]
+  def change
+    add_column :customers, :birth_month_day, :integer, limit: 4
+    add_index :customers, :birth_month_day
+  end
+end

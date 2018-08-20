@@ -1,0 +1,33 @@
+.row
+  .col-md-12.horz-form
+    .box.box-primary.fixed.mb-5
+      - gotoPath = @financial_product.new_record? ? edit_backend_financial_product_path(0) : ''
+      = simple_form_for [:backend,@financial_product], wrapper: :horizontal_form, data: {toggle: :validator, remote: true, type: :json, gotopath: "#{gotoPath}" } do |f|
+        /= f.error_notification
+        / = render 'layouts/error_tip'
+
+        .box-body
+          .col-md-10
+            = f.input :apply_area, as: :radio_buttons, wrapper: :horizontal_radio_and_checkboxes
+            = f.input :level, as: :radio_buttons, wrapper: :horizontal_radio_and_checkboxes
+            = f.input :source_from, as: :radio_buttons, wrapper: :horizontal_radio_and_checkboxes
+            = f.input :classify
+            = f.input :name, required:true
+            = f.input :begin_at, as: :string, required:true, input_html:{ data: {provide: 'datepicker', "date-format": "yyyy-mm-dd", "date-autoclose": true, "date-language": "zh-CN"} }
+            = f.input :end_at, as: :string, required:true, input_html:{ data: {provide: 'datepicker', "date-format": "yyyy-mm-dd", "date-autoclose": true, "date-language": "zh-CN"} }
+            = f.input :total_limit, as: :currency, required:true
+            = f.input :min_amount, as: :currency
+            = f.input :sale_rate
+            = f.input :annual_income
+            = f.input :period
+            = f.input :desc, input_html: {class: "mh100"}
+
+        .box-footer
+          .col-md-10
+            .col-sm-3
+            .col-sm-9
+              = f.submit class: 'btn btn-primary'
+              | &nbsp; &nbsp;
+              = link_to backend_financial_products_path, class: 'btn btn-default' do
+                span.fa.fa-chevron-left=t('back')
+

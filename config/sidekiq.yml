@@ -1,0 +1,29 @@
+# Options here can still be overridden by cmd line args.
+#   sidekiq -C sidekiq.yml
+---
+:concurrency: 5
+staging:
+  :concurrency: 10
+production:
+  :concurrency: 20
+  :pidfile: tmp/pids/sidekiq.pid
+  :logfile: log/sidekiq.log
+
+:queues:
+  - schedule
+  - search_indexer
+  - mailer
+  - default
+  - critical
+  # - [schedule, 50]
+  # - [search_indexer, 30]
+  # - [mailer, 5]
+  # - [default, 3]
+  # - [critical, 2]
+
+#sidekiq-scheduler
+:dynamic: true # true: can be modified in runtime, default=false
+# :dynamic_every: <if dynamic is true, the schedule is reloaded every interval [5s by default]>
+# :enabled: <enables scheduler if true [true by default]>
+# :scheduler:
+  # :listened_queues_only: <push jobs whose queue is being listened by sidekiq [false by default]>

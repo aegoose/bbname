@@ -1,0 +1,172 @@
+# -*- encoding : utf-8 -*-
+
+module Backend
+  class HomeController < Backend::ApplicationController
+    # skip_before_action :verify_authenticity_token
+    respond_to :html, :json
+
+    layout 'admin_application'
+
+    def index
+      add_breadcrumb I18n.t('navs.backend.customers'), :backend_customers_path
+      @top_stats = true
+      @counts = {
+        customers: { all: ['总客户数', 0, :all], num: ['生日', 0, :birthday]},
+        fix: { all: ['定期客户', 0, :fix], num: ['到期', 0, :out_fix] },
+        insure: { all: ['保险客户', 0, :insure], num: ['到期', 0, :out_insure] },
+        financial: { all: ['理财客户', 0, :financial], num: ['到期', 0, :out_financial] }
+      }
+
+      if policy(:menu).admin_super?
+        # 用 Admin类也可以， branch会高效一些
+        @counts[:customers][:all][1] = Branch.cus_all_n || 0
+        @counts[:customers][:num][1] = Branch.cus_all_birthday_n || 0
+        @counts[:fix][:all][1] = Branch.cus_all_fix_n || 0
+        @counts[:fix][:num][1] = Branch.cus_all_out_fix_n || 0
+        @counts[:insure][:all][1] = Branch.cus_all_insure_n || 0
+        @counts[:insure][:num][1] = Branch.cus_all_out_insure_n || 0
+        @counts[:financial][:all][1] = Branch.cus_all_financial_n || 0
+        @counts[:financial][:num][1] = Branch.cus_all_out_financial_n || 0
+
+      else
+        obj = nil
+        if policy(:menu).mayor?
+          obj = current_admin.branch
+        elsif policy(:menu).manager?
+          obj = current_admin
+        else
+          @home_page = false
+        end
+
+        unless obj.blank?
+          @counts[:customers][:all][1] = obj&.cus_n || 0
+          @counts[:customers][:num][1] = obj&.cus_birthday_n || 0
+          @counts[:fix][:all][1] = obj&.cus_fix_n || 0
+          @counts[:fix][:num][1] = obj&.cus_out_fix_n || 0
+          @counts[:insure][:all][1] = obj&.cus_insure_n || 0
+          @counts[:insure][:num][1] = obj&.cus_out_insure_n || 0
+          @counts[:financial][:all][1] = obj&.cus_financial_n || 0
+          @counts[:financial][:num][1] = obj&.cus_out_financial_n || 0
+        end
+      end
+
+      load_tags
+      load_branches
+      top_customers
+
+    end
+
+    def top_customers
+
+      @qr = params.fetch(:query){Hash.new}.permit(:key, :tags, :catg, :birthday, :branch_id, :assets_level)
+      # @qr = params.fetch(:query, {}).permit(:key, :tags, :branch_id, :assets_level)
+      @qr = @qr.select { |k, v| { k => v } unless v.blank? }
+      if @qr[:branch_id].blank? && !params[:branch_id].blank?
+        @qr[:branch_id] = params[:branch_id]
+      end
+      qrkey = @qr.delete(:key)
+      qrtag = @qr.delete(:tags)
+      qrcatg = @qr.delete(:catg) || ''
+      qrmonth = @qr.delete(:birthday).to_i
+
+      @hide_cond = false
+      @hide_birthday_cond = false
+
+      case qrcatg.to_sym
+      when :out_fix, :out_insure, :out_financial
+        if current_admin.super? || current_admin.admin?
+          @customers = page_out_type(1, "all_#{qrcatg}", params[:page])
+        elsif current_admin.mayor?
+          @customers = page_out_type(2, qrcatg, params[:page])
+        else
+          @customers = page_out_type(3, qrcatg, params[:page])
+        end
+
+        @qr, qrkey, qrtag, qrmonth = {}, nil, nil, 0
+        @hide_cond = true
+
+      when :fix, :insure, :financial
+        @customers = query_by(@qr, qrkey, qrtag, qrmonth).last_not_null(qrcatg).page(params[:page])
+
+      when :birthday
+        @customers = query_by(@qr, qrkey, qrtag).will_outdate_near.page(params[:page])
+        qrmonth = 0
+        @hide_birthday_cond = true
+      else
+        qrcatg = nil
+        @customers = query_by(@qr, qrkey, qrtag, qrmonth).page(params[:page])
+      end
+
+      # @customers = Customer.by_query(@qr).by_key(qrkey).by_tag(qrtag).page(params[:page])
+      @qr[:key] = qrkey unless qrkey.blank?
+      @qr[:tags] = qrtag unless qrtag.blank?
+      @qr[:catg] = qrcatg unless qrcatg.blank?
+      @qr[:birthday] = qrmonth if qrmonth > 0
+      # binding.pry
+    end
+
+    def tags
+      load_tags
+      respond_modal_with @tags
+    end
+
+    def customer_by_tags
+    end
+
+    private
+    def query_by(qr, key, tag, month=0, day=0)
+      policy_scope(Customer).includes(:products).by_query(qr).by_key(key).by_tag(tag).birth_month_at(month, day)
+    end
+
+    def page_out_type(all = 3, ty, page)
+      ids = []
+      if all == 1
+        rd_outs = Branch.send("cus_#{ty}_list")
+        ids = rd_outs&.members || []
+      elsif all == 2
+        br = current_admin.branch
+        rd_outs = br.send("cus_#{ty}_list")
+        ids = rd_outs&.members || []
+      else
+        adm = current_admin
+        rd_outs = adm.send("cus_#{ty}_list")
+        ids = rd_outs&.members || []
+      end
+
+      ptotal = ids.count
+      pnum = params[:page] || 1
+      psize = 20
+      pbegin = (pnum - 1) * psize
+      pend = pnum * psize
+      ids = ids[pbegin..pend]
+
+      # puts "---cus_#{ty}_list--#{ids}"
+
+      arr = Customer.where(id: ids)
+      return Kaminari.paginate_array(arr, total_count: ptotal).page(pnum).per(psize)
+
+    end
+
+    def load_branches
+      @branches = []
+      @branches = Branch.all #if policy(:menu).admin_super?
+    end
+
+    def load_tags
+      @tags = []
+
+      if policy(:menu).mayor?
+
+        unless (br = current_admin.branch).blank?
+          @tags = br.tags_hash.members(with_scores: true)
+        end
+
+      elsif policy(:menu).manager?
+
+        @tags = current_admin.tags_hash.members(with_scores: true)
+
+      end
+    end
+
+  end
+end

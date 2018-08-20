@@ -1,0 +1,114 @@
+.tree-picker {
+  position: absolute;
+  visibility: hidden;
+}
+.tree-picker-container {
+  min-width: 120px;
+  position: relative;
+  background: image_url('arrow.png') no-repeat right 12px white;
+  .input-mocker {
+    border: 1px solid $border-color-grey;
+    padding: 4px 25px 4px 12px;
+    line-height: 24px;
+    height: 34px;
+    @include text-overflow;
+  }
+  .query {
+    border-color: $border-color-grey !important;
+  }
+  .picker-panel, .error {
+    position: absolute;
+    padding: 5px;
+    left: 0;
+    min-width: 100%;
+    top: 100%;
+    top: calc(100% - 1px);
+    z-index: $z-popup;
+    display: none;
+    border: 1px solid $border-color-grey;
+    background: white;
+    .tree {
+      margin: 0 -5px -5px;
+      max-height: 350px;
+      overflow: auto;
+    }
+    .tree > ul {
+      display: block;
+      padding-left: 10px;
+    }
+  }
+  ul {
+    display: none;
+    padding-left: 10px;
+  }
+  li {
+    position: relative;
+    &:before {
+      content: '';
+      border-left: 1px dotted $border-color-grey;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    &.last:before {
+      height: 13px;
+    }
+
+    .item-icon {
+      position: absolute;
+      text-align: center;
+      width: 20px;
+      line-height: 26px;
+      cursor: pointer;
+      z-index: 1;
+      font-size: 18px;
+      color: $green;
+      + a:before {
+        width: 5px;
+      }
+    }
+
+    &.open {
+      > ul {
+        display: block;
+      }
+    }
+  }
+  a {
+    position: relative;
+    display: block;
+    padding: 3px 10px 3px 20px;
+    color: black;
+    @include text-overflow;
+    &:hover, &.selected {
+      color: $green;
+    }
+    &:before {
+      content: '';
+      border-top: 1px dotted $border-color-grey;
+      width: 15px;
+      position: absolute;
+      top: 50%;
+      left: 0;
+    }
+
+    strong {
+      color: $red;
+    }
+  }
+
+  .error {
+    text-align: center;
+    color: $red;
+    padding: 5px 10px;
+  }
+  &.shown{
+    .input-mocker, .picker-panel {
+      border-color: $green;
+    }
+    .picker-panel, .error {
+      display: block;
+    }
+  }
+}

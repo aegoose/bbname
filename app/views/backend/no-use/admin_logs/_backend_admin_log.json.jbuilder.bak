@@ -1,0 +1,2 @@
+json.extract! backend_admin_log, :id, :classify, :title, :content, :result, :created_at, :updated_at
+json.url backend_admin_log_url(backend_admin_log, format: :json)

@@ -1,0 +1,39 @@
+<%- table_path_str = controller_class_path.join("_") + "_" + singular_table_name -%>
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.<%= singular_table_name %>')
+          = t('list')
+          | &nbsp;&nbsp;
+        .box-tools.right-bottom.query
+          = link_to new_<%= table_path_str %>_path, class: 'btn btn-primary btn-sm' do
+            i.fa.fa-plus-square
+              = t('new')
+              = t('models.<%= singular_table_name %>')
+        .query.clearfix
+          = simple_form_for :query, url: <%= table_path_str.pluralize %>_path, method: :get, wrapper: :inline_form do |f|
+            .query-item.pull-left.inp-m
+              = f.input :key, placeholder: qr_t("query.<%=singular_table_name %>.by_key"), input_html: {value: @qr[:key]}
+      .box-body.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+<%- for attribute in attributes -%>
+              th = t('activerecord.attributes.<%= singular_table_name %>.<%= attribute.name %>')
+<%- end -%>
+              th
+          tbody
+          - @<%= plural_table_name %>.each do | <%= singular_table_name %> |
+            tr
+<%- for attribute in attributes -%>
+            td
+              = <%= singular_table_name %>.<%= attribute.name %>
+<%- end -%>
+            td
+              = link_to t('show'), <%= table_path_str %>_path(<%= singular_table_name %>)
+              | &nbsp;|&nbsp;
+              = link_to t('edit'), edit_<%= table_path_str %>_path(<%= singular_table_name %>)
+              | &nbsp;|&nbsp;
+              = link_to t('destroy'), <%= table_path_str %>_path(<%= singular_table_name %>), method: :delete, data: { confirm: '确定要删除吗' }

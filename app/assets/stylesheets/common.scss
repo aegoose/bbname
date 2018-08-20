@@ -1,0 +1,83 @@
+@import "common/variables";
+@import "common/functions";
+@import "common/mixins";
+@import "common/pagination";
+@import "common/simple-captcha";
+@import "common/tree-picker";
+
+
+@include generate-font-sizes;
+
+@include generate-input-widthes(1);
+
+@include generate-span-space;
+
+@include generate-height;
+
+@include generate-min-height;
+
+@include generate-margin-padding-util;
+
+@include generate-radius;
+
+@include generate-sex-sizes;
+
+@include generate-assets-level;
+
+
+@mixin generate-color-style(){
+  $list: (
+    blue: $blue,
+    grey: $grey,
+    green: $green,
+    red: $red,
+    orange: $orange
+  );
+  .color {
+    @each $n, $w in $list {
+      &.#{$n} {
+        color: #{$w}
+      }
+      &.#{$n}-light {
+        color: #{lighten($w, 13.5%)};
+      }
+      &.#{$n}-lighter {
+        color: #{lighten($w, 20%)};
+      }
+      &.#{$n}-dark {
+        color: #{darken($w, 10%)};
+      }
+      &.#{$n}-darker {
+        color: #{darken($w, 15%)};
+      }
+    }
+  }
+}
+@include generate-color-style;
+
+.bg-white{
+  background-color: #fff !important;
+}
+.bg-light-yellow{
+  background-color: #FFFF00 !important;
+}
+
+
+
+@mixin generate-logger-level(){
+  $list: (
+    debug: #B8B8B8,
+    info: #5cb85c,
+    warning: #DE732A,
+    error: #d9534f,
+  );
+  .log{
+    @each $n, $w in $list {
+      &.#{$n}{
+        color: #{$w};
+      }
+    }
+  }
+}
+@include generate-logger-level;
+

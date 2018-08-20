@@ -1,0 +1,41 @@
+class CreateCustomers < ActiveRecord::Migration[5.1]
+  def change
+    create_table :customers do |t|
+      t.string :name, limit: 50
+      t.integer :sex, limit: 2
+      t.datetime :birthday
+      t.string :education, limit: 50
+      t.string :interest, limit: 50
+      t.string :tel, limit: 30
+      t.string :qq, limit: 30
+      t.string :email, limit: 50
+      t.string :wechat, limit: 50
+      t.integer :province_id
+      t.integer :city_id
+      t.integer :distinct_id
+      t.integer :post_code
+      t.string :address, limit: 200
+      t.references :catg, foreign_key: true
+      t.string :tags, limit: 100
+      t.string :source_from, limit: 50
+      t.string :priority, limit: 20
+      t.text :remark
+      t.string :job_title, limit: 50
+      t.string :company_name, limit: 100
+      t.string :company_nature, limit: 50
+      t.string :company_scale, limit: 50
+      t.string :office_tel, limit: 30
+      t.string :office_fax, limit: 30
+      t.string :office_address, limit: 200
+      t.integer :office_post_code
+
+      t.timestamps
+    end
+    add_index :customers, :name
+    add_index :customers, :tel
+    add_index :customers, :company_name
+    add_index :customers, :province_id
+    add_index :customers, :city_id
+    add_index :customers, :distinct_id
+  end
+end

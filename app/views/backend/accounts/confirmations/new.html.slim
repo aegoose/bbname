@@ -1,0 +1,23 @@
+.login-page
+  .login-box
+    .login-logo
+      a[href="#"]
+        b=t("admin.company_title")
+        =t("admin.company_name")
+  .login-box-body
+    h4.login-box-msg
+      =t("admin.reset_password_title")
+    = simple_form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }) do |f|
+      = render 'layouts/error_tip'
+      = f.full_error :confirmation_token
+      .form-group.has-feedback
+        = f.input :username, required: true, label:false, autofocus: true
+        span.form-control-feedback
+          i.fa.fa-user
+      .form-inputs
+        = f.input :username, required: true, autofocus: true
+
+      .form-actions
+        = f.submit t('helpers.submit.admin_admin.confirm_password'), class:'btn btn-primary btn-block btn-flat'
+      p.form-group
+        = render "backend/accounts/shared/links"

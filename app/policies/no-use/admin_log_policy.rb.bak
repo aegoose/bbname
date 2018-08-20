@@ -1,0 +1,81 @@
+class AdminLogPolicy < ApplicationPolicy
+
+  def crud?
+    admin_super?
+  end
+
+  #############
+  # for
+  #############
+  def import_index?
+    manager? || admin? || super?
+  end
+
+  def import_show?
+    super? || admin? || user == record.admin
+  end
+
+  def new_customer?
+    manager? || super?
+  end
+
+  def new_financial?
+    admin? || super?
+  end
+
+  #############
+  # for records
+  #############
+  def do_reset?
+    user == record.admin
+  end
+
+  def do_process?
+    user == record.admin # (&& super? || manager?)
+  end
+
+  ######
+
+  def up_financial?
+    user == record.admin
+  end
+
+  def process_financial?
+    do_process?
+  end
+
+  def financial_done?
+    user == record.admin
+  end
+
+  #####
+
+  def up_customer?
+    user == record.admin
+  end
+
+  def process_customer?
+    do_process?
+  end
+
+  def customer_done?
+    user == record.admin
+  end
+
+  ############
+
+  class Scope < Scope
+    def resolve
+      if user.admin? || user.super?
+        scope.all
+      elsif user.mayor?
+        # scope.all
+        scope.where(branch: user.branch)
+      elsif user.manager?
+        scope.where(admin: user)
+      else
+        scope.where('1=0')
+      end
+    end
+  end
+end

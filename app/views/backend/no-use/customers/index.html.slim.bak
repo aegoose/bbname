@@ -1,0 +1,95 @@
+-content_for :title
+  = t('models.customer')
+  | 管理
+
+.row
+  .col-md-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.customer')
+          = t('list')
+          | &nbsp;&nbsp;
+        .box-tools.right-bottom.query.clearfix
+          - if policy(:customer).new?
+            .query-item.pull-left
+              = link_to new_backend_customer_path, class: 'btn btn-sm btn-primary' do
+                i.fa.fa-plus-square
+                  = t('new')
+                  = t('models.customer')
+        .query.clearfix
+          = simple_form_for :query, url: backend_customers_path, method: :get, wrapper: :inline_form do |f|
+            / =f.input :manager, as: :hidden
+            .query-item.pull-left.inp-m
+              = f.input :key, placeholder: qr_t("query.customer.by_key"), input_html: {value: @qr[:key]}
+            .query-item.pull-left.inp-m
+              = f.input :tags, placeholder: qr_t("query.customer.by_tags"), input_html: {value: @qr[:tags]}
+            - if policy(:customer).filter_by_branch?
+              .query-item.pull-left.inp-m
+                = f.input :branch_id, collection:Branch.all, selected: @qr[:branch_id], label_method: :name, value_method: :id, include_blank: qr_t("query.customer.by_branch"), input_html:{ class: "query-select"}
+
+            - if policy(:customer).filter_by_manager?
+              .query-item.pull-left.inp-m
+                = f.input :manager, collection:Admin.all_managers, selected: @qr[:manager], label_method: :name, value_method: :id, include_blank: qr_t("query.customer.by_manager"), input_html:{ class: "query-select"}
+            / .query-item.pull-left.inp-m
+              = f.input :catg_id, collection:Catg.all, label_method: :name, value_method: :id, selected: @qr[:catg_id], include_blank: qr_t("query.customer.by_catg"), input_html:{ class: "query-select"}
+
+      .box-body.table-wrapper.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              th=t('activerecord.attributes.customer.name')
+              th=t('activerecord.attributes.customer.tel')
+              / th=t('activerecord.attributes.customer.sex')
+              / th=t('activerecord.attributes.customer.assets_level')
+              - if policy(:customer).filter_by_branch?
+                th=t('activerecord.attributes.customer.branch_id')
+              - if policy(:customer).filter_by_manager?
+                th=t('activerecord.attributes.customer.branch_id')
+              th=t('activerecord.attributes.customer.tags')
+              th=t('activerecord.attributes.customer.fix_due_at')
+              th=t('activerecord.attributes.customer.insure_due_at')
+              th=t('activerecord.attributes.customer.financial_due_at')
+              th=t('th_links')
+          tbody
+          - @customers.each do | customer |
+            tr
+            td[title="#{customer.assets_level&.text}"]
+              span.h20[class="assets #{customer.assets_level}"]
+                - if customer.sex.girl?
+                  = image_tag "girl.png", class: "img-circle sex ss"
+                - else
+                  = image_tag "boy.png", class: "img-circle sex ss"
+                = link_to customer.name, backend_customer_path(customer)
+            td
+              = link_to customer.tel, backend_customer_path(customer)
+            - if policy(:customer).filter_by_branch?
+              td
+                = customer.branch_name
+            - if policy(:customer).filter_by_manager?
+              td
+                = customer.manager&.name
+            td
+              - customer.tags_list.each do |tg|
+                = link_to backend_customers_path("query[tags]": tg)
+                  span.tag_at.label.label-primary=tg
+            td
+             = render partial: 'layouts/partial/product_period', locals: {product: customer.last_fix, customer: customer, last_type: :fix}
+            td
+              = render partial: 'layouts/partial/product_period', locals: {product: customer.last_insure, customer: customer, last_type: :insure}
+            td
+              = render partial: 'layouts/partial/product_period', locals: {product: customer.last_financial, customer: customer, last_type: :financial}
+
+            td.td-links
+              - if policy(customer).show?
+                = link_to "产品", backend_customer_products_path(customer_id: customer.id)
+              - if policy(customer).edit?
+                = link_to t('edit'), edit_backend_customer_path(customer)
+              - if policy(customer).destroy?
+                = link_to t('destroy'), backend_customer_path(customer), method: :delete, remote: true, data: { confirm: '确定要删除吗'}
+      .box-footer
+        .paging
+          = paginate @customers
+          = page_entries_info @customers
+
+

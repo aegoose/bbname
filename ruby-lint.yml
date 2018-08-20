@@ -1,0 +1,10 @@
+---
+directories:
+  - app
+  - lib
+  # - vendor/bundle/gems
+  # - vendor/bundle/bundler/gems/**/*.rb
+report_levels:
+  - warning
+  - error
+  - info

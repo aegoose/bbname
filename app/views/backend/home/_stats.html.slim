@@ -1,0 +1,20 @@
+- icons = { customers: {icon: 'fa-users', bg: 'bg-light-blue'}, fix: {icon: 'fa-lock', bg: 'bg-purple'}, insure: {icon: 'fa-shield', bg: 'bg-olive'}, financial: {icon:'fa-line-chart', bg: 'bg-orange'} }
+- @counts.each do |ty, val|
+  .col-md-3.col-sm-6.col-xs-6
+    .info-box
+      span.info-box-icon[class="#{icons[ty][:bg]}"]
+        i.fa[class="#{icons[ty][:icon]}"]
+      .info-box-content
+        span.info-box-text
+          =val[:all][0]
+        span.info-box-number
+          = link_to "#{val[:all][1]}人", backend_root_path("query[catg]": "#{val[:all][2]}"), class: "text-black"
+          / ="#{val[:all][1]}人"
+        - if val[:num][1] > 0
+          span.info-box-number.ft-13.mt-10
+            = link_to "#{val[:num][1]}位即将#{val[:num][0]}", backend_root_path("query[catg]": "#{val[:num][2]}"), class: "text-red"
+            / = "有#{val[:num][1]}位即将#{val[:num][0]}"
+        - else
+          i.info-box-number.text-muted.ft-13.mt-10
+            = "暂无#{val[:num][0]}"
+

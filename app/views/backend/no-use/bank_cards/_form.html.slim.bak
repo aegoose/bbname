@@ -1,0 +1,19 @@
+.row
+  .col-sm-12.fixed.horz-form.padding-5
+    .box.box-primary.fixed.mb-5
+      = simple_form_for([:backend,@card], wrapper: :horizontal_form, data: {toggle: :validator, remote: true, type: :json, reloadpage: true}) do |f|
+        / = simple_form_for([:backend, @card]) do |f|
+        /= f.error_notification
+        / = render 'layouts/error_tip'
+        .box-body
+          = f.input :card_type
+          = f.input :card_no, required: true
+          = f.input :customer_id, required: true, readonly:true
+          / = f.input :open_date
+          / = f.input :due_date
+
+        .box-footer
+          .col-md-10
+            .col-sm-3
+            .col-sm-9
+              = f.submit :class => 'btn btn-primary'

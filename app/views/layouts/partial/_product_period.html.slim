@@ -1,0 +1,25 @@
+- if product.blank?
+  - if customer && last_type
+    = link_to new_backend_customer_product_path(customer_id: customer, classify: last_type), data:{modal:true} do
+      i.fa.fa-plus-square
+      = t("admin.add", title: CustomerProduct.classify.find_value(last_type)&.text)
+- else
+  span = product.period_desc
+  - ty, dayat = product.day_at_type
+  - atstr = l(product.end_at, format: :cn_ymd)
+  - case ty
+  - when :outdate
+    - dstr = t('admin.customer_product.outdate', date: atstr) + ", " + t('admin.customer_product.date_at', date: atstr)
+    span title="#{dstr}" data-toggle="tooltip" data-placement="top"
+      i.fa.fa-exclamation-circle.text-muted
+  - when :today
+    span title="#{t('admin.customer_product.today')}" data-toggle="tooltip" data-placement="top"
+      i.fa.fa-exclamation-circle.text-warnging
+  - when :near
+    - dstr = t('admin.customer_product.date_at', date: atstr) + ", " + t('admin.customer_product.rest_at', days: dayat)
+    span title="#{dstr}" data-toggle="tooltip" data-placement="top"
+      i.fa.fa-info-circle.text-warning
+  - when :noyet
+    - dstr = t('admin.customer_product.date_at', date: atstr) + ", " + t('admin.customer_product.rest_at', days: dayat)
+    span title="#{dstr}" data-toggle="tooltip" data-placement="top"
+      i.fa.fa-info-circle.text-muted

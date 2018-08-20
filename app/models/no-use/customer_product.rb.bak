@@ -1,0 +1,178 @@
+# == Schema Information
+#
+# Table name: customer_products
+#
+#  id          :integer          not null, primary key
+#  customer_id :integer
+#  admin_id    :integer
+#  branch_id   :integer
+#  classify    :string(50)
+#  begin_at    :datetime
+#  end_at      :datetime
+#  period      :integer
+#  money       :float(24)
+#  income_rate :float(24)
+#  status      :integer
+#  product_id  :integer
+#  remark      :text(65535)
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#  period_type :string(255)
+#
+# Indexes
+#
+#  index_customer_products_on_admin_id     (admin_id)
+#  index_customer_products_on_branch_id    (branch_id)
+#  index_customer_products_on_classify     (classify)
+#  index_customer_products_on_customer_id  (customer_id)
+#  index_customer_products_on_status       (status)
+#
+class CustomerProduct < ApplicationRecord
+
+  belongs_to :customer, required: true
+  belongs_to :branch, required: true
+  belongs_to :manager, class_name: :Admin, foreign_key: :admin_id, required: true # 客户经理
+
+  extend Enumerize
+  enumerize :status, in: { disabled: -3, inactive: -2, expired: -1, outting: 0, actived: 1 }, default: :actived, scope: true
+  enumerize :classify, in: %i[fix insure financial], default: :financial, scope: true
+  enumerize :period_type, in: %i[year month day due_date], default: :day
+  enumerize :is_bind, in: %i[replace skip], default: :replace
+
+  attr_accessor :is_bind
+
+  scope :by_query, ->(query) { where(query) unless query.blank? } 
+  scope :by_key, -> (qkey) { joins(:customer).where("customers.name like ? ", "%#{qkey}%") unless qkey.blank? }
+  # ref https://medium.com/rubyinside/active-records-queries-tricks-2546181a98dd
+  # scope :by_key, -> (qkey) { joins(:customer).merge(Customer.by_key(qkey)) unless qkey.blank? }
+  scope :classify_at, ->(ty) { where(classify: ty) unless ty.blank? }
+  scope :begin_at, ->(d) { where(begin_at: d.beginning_of_day..d.end_of_day) unless d.blank? }
+  scope :end_at, ->(d) { where(end_at: d.beginning_of_day..d.end_of_day) unless d.blank? }
+  scope :end_between, ->(sd, ed) do
+     sdate = Date.parse(sd) rescue nil
+     edate = Date.parse(ed) rescue nil
+     where(end_at: sdate.beginning_of_day..edate.end_of_day) if sdate.present? and edate.present?
+  end
+  # scope :end_at, lambda {|the_date| where(end_at: the_date.beginning_of_day..the_date.end_of_day )}
+
+  scope :product_at, ->(ty, bdate, edate) do
+    bdate = bdate&.to_date
+    edate = edate&.to_date
+    if ty.blank? || bdate.blank? || edate.blank?
+      where('1 = 2')
+    else
+      classify_at(ty).begin_at(bdate).end_at(edate).limit(1)
+    end
+  end
+
+  scope :status_type_at, ->(ty) do
+    case ty.to_sym
+    when :near
+      will_outdate_near
+    when :outdate
+      outdated_from_now
+    when :normal
+      actived_from_now
+    else
+      with_status(ty) if CustomerProduct.status.values.include? (ty)
+    end
+  end
+
+  def self.status_types
+    [
+      ['最近到期', :near],
+      ['已过期', :outdate],
+      ['未过期', :normal],
+      # ['未到期', :feature]
+    ]
+  end
+
+  #######################################################
+  OUT_DATE_SPAN = 5
+  include CustomerCountable::ActionsForCustomerProduct # redis缓存处理
+  set_check_outdate_actions :end_at, OUT_DATE_SPAN #outdate_near? / outdate? / outdate_today?
+  #######################################################
+
+  def self.parse_attrs(sdate, edate, ptype_cn, pnum, money)
+    pp = CustomerProduct.new
+    pp.set_period(sdate, edate, ptype_cn, pnum, money)
+    pp.attributes.compact
+  end
+
+  # 重置存期
+  def reset_period
+    if period_type.year?
+      self.end_at = begin_at + period.year
+    elsif period_type.month?
+      self.end_at = begin_at + period.month
+    elsif period_type.day?
+      self.end_at = begin_at + period.day
+    elsif period_type.due_date?
+      self.period = (end_at - begin_at).to_i / 3600 / 24
+      # period_type = :day
+    end
+  end
+
+  # 设置存期
+  def set_period(sdate, edate, ptype_cn, pnum, money)
+    self.begin_at = sdate
+    self.money = money if money.positive?
+    case ptype_cn
+    when '年'
+      self.period_type = :year
+      self.period = pnum
+    when '月'
+      self.period_type = :month
+      self.period = pnum
+    else # "日", "天"
+      self.period_type = :day
+      self.period = pnum
+      unless edate.blank?
+        self.period_type = :due_date
+        self.end_at = edate
+      end
+    end
+    reset_period
+  end
+
+  def period_desc
+    uints = period_type.text
+    uints = CustomerProduct.period_type.day.text if period_type.due_date?
+    "#{classify.text}#{period}#{uints}"
+  end
+
+  def day_at_type
+    dayat = (end_at - Time.now).to_i / 3600 / 24
+    ty = dayat < 0 ?
+      :outdate : dayat == 0 ?
+      :today : dayat < OUT_DATE_SPAN ?
+      :near : :noyet
+    [ty, dayat]
+  end
+
+  def day_at(simple=false)
+    # "#{period_desc},#{I18n.t("admin.customer_products.day_at", days: days)}"
+    ty, dayat = day_at_type
+    if simple
+      case ty
+      when :outdate
+        I18n.t('admin.customer_product.outdate')
+      when :today
+        I18n.t('admin.customer_product.today')
+      when :near, :noyet
+        I18n.t('admin.customer_product.rest_at', days: dayat)
+      end
+    else
+      case ty
+      when :outdate
+        I18n.t('admin.customer_product.outdate')
+      when :today
+        I18n.t('admin.customer_product.today')
+      when :near
+        I18n.t('admin.customer_product.date_at', days: I18n.l(end_at, format: :cn_Md))
+      when :noyet
+        I18n.t('admin.customer_product.days_at', days: dayat)
+      end
+    end
+  end
+end

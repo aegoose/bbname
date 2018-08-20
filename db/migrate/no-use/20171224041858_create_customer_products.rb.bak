@@ -1,0 +1,25 @@
+class CreateCustomerProducts < ActiveRecord::Migration[5.1]
+  def change
+    create_table :customer_products do |t|
+      t.integer :customer_id
+      t.integer :admin_id
+      t.integer :branch_id
+      t.string :classify, limit: 50
+      t.datetime :begin_at
+      t.datetime :end_at
+      t.integer :period
+      t.float :money
+      t.float :income_rate
+      t.integer :status
+      t.integer :product_id
+      t.text :remark
+
+      t.timestamps
+    end
+    add_index :customer_products, :customer_id
+    add_index :customer_products, :admin_id
+    add_index :customer_products, :branch_id
+    add_index :customer_products, :classify
+    add_index :customer_products, :status
+  end
+end

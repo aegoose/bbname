@@ -1,0 +1,8 @@
+= content_for :title
+  - if @only_pwd
+    | 修改密码
+  - else
+    = t("edit")
+    = t('models.admin')
+    strong = "\"#{@admin.name}\""
+= render 'form'

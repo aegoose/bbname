@@ -1,0 +1,32 @@
+class SearchIndexerWorker
+  include Sidekiq::Worker
+  sidekiq_options retry: false, queue: :search_indexer, backtrace: 5
+
+  def perform(operation, type, id)
+    # Do something
+    # obj = nil
+    # # type.downcase!
+
+    # case type
+    # when 'Customer'
+    #   obj = Customer.find_by_id(id)
+    # when 'CustomerProduct'
+    #   obj = CustomerProduct.find_by_id(id)
+    # when 'FinancialProduct'
+    #   obj = FinancialProduct.find_by_id(id)
+    # end
+
+    # return false unless obj
+
+    # if operation == 'update'
+    #   obj.__elasticsearch__.update_document
+    # elsif operation == 'delete'
+    #   obj.__elasticsearch__.delete_document
+    # elsif operation == 'index'
+    #   obj.__elasticsearch__.index_document
+    # end
+
+    # logger.info ""
+
+  end
+end

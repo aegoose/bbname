@@ -1,0 +1,16 @@
+.row
+  .col-sm-12.fixed.horz-form
+    = simple_form_for [:backend,@branch], wrapper: :horizontal_form, data: {toggle: :validator, remote: true, type: :json, reloadpage: true} do |f|
+      /= f.error_notification
+      /= render 'layouts/error_tip'
+
+      .box-body
+        = f.input :distinct_id, collection:Area.dg_distincts, selected: @branch.distinct_id, label_method: :name, value_method: :id, include_blank: '选择网点', required:true
+        = f.input :name, required:true
+        = f.input :branch_no, required:true, pattern: "^[0-9]{1,}$"
+
+      .box-footer
+        .form-group
+          .col-sm-3
+          .col-sm-9
+            = f.submit :class => 'btn btn-primary'

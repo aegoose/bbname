@@ -1,0 +1,40 @@
+
+customer_schedule: &cus
+  # class: CustomerScheduleWorker
+  # # every: '10s'
+  # # every: '1m'
+  # every: '1h'
+  # description: 'Job to deal with out time'
+
+development:
+  customer_schedule:
+    <<: *cus
+
+test:
+  customer_schedule:
+    <<: *cus
+
+production:
+  customer_schedule:
+    <<: *cus
+    # cron: '0 0 1 * * *' # 每天凌层1点重新计算
+    # cron: '0 1 * * *' # 5位都可以
+
+# :schedule:
+  # CustomerScheduleWorker:
+    # every: '10s'aa
+    # cron: '0 * * * * *' # Runs when second = 0
+    # every: '45m'    # Runs every 45 minutes / 45s
+    # at: '3001/01/01' #
+    # in: 1h # pushes a sidekiq job in 1 hour, after start-up
+    # every: ['30s', first_in: '120s']
+  # clear_leaderboards_contributors:
+  #   cron: '0 30 6 * * 1'
+  #   class: ClearLeaderboards
+  #   queue: low
+  #   args: contributors
+  #   description: 'This job resets the weekly leaderboard for contributions'
+
+# when dynamic = true
+# Sidekiq.set_schedule('heartbeat', { 'every' => ['1m'], 'class' => 'HeartbeatWorker' })
+# Sidekiq.get_schedule

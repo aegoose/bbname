@@ -1,0 +1,16 @@
+defaults: &defaults
+    host: 127.0.0.1
+    port: 6379
+    db: 1                       # rails 缓存
+    db_sidekiq: 2               # sidekiq 队列
+    db_cable: 3                 # cable pub/sub
+    ns_sidekiq: 'bbname:sidekiq'   # name for sidekiq
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults

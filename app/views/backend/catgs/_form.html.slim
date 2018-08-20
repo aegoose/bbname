@@ -1,0 +1,19 @@
+= simple_form_for [:backend,@catg], wrapper: :inline_form, data:{ toggle: :validator, remote: true, type: :json, reloadpage: true} do |f|
+  /remote:true, type: :json,
+  /= f.error_notification
+  /= render 'layouts/error_tip'
+  dl.dl-horizontal
+    dt 类别
+    dd= f.input :name, required: true
+    dt 序号
+    dd= f.input :seq
+    hr/
+    dt
+    dd
+      = f.button :submit, :class => 'btn btn-primary' do
+        i.fa.fa-save
+          | 保存
+  / .box-body
+    / = f.input :catg_id, collection: Catg.all, input_html: {class: 'inp-x', required: true, data: {"ajax-select2": { type: :catg, slts: "#{@catg&.id}"}, placeholder: "选择类别"}}
+  / .box-footer
+

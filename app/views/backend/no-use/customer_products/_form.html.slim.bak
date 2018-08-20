@@ -1,0 +1,30 @@
+.row
+  .col-sm-12.fixed.horz-form.padding-5
+    .box.box-primary.fixed.mb-5
+      = simple_form_for([:backend,@customer_product], wrapper: :horizontal_form, data: {toggle: :validator, remote: true, type: :json, reloadpage: true}) do |f|
+        / = f.error_notification
+        / = render 'layouts/error_tip'
+        .box-body
+          .col-md-10
+            = f.input :customer_id, required: true, readonly:true
+            = f.input :classify, as: :radio_buttons, wrapper: :horizontal_radio_and_checkboxes, required:true
+            = f.input :begin_at, as: :string, required:true, input_html:{ value: l(@customer_product.begin_at, format: :Ymd), data: {provide: 'datepicker', "date-format": "yyyy-mm-dd", "date-autoclose": true, "date-language": "zh-CN"} }
+              / = f.input :end_at, as: :string, wrapper_html:{class: "#{@customer_product.new_record? ? "hidden":""}"}, input_html:{data: {provide: 'datepicker', "date-format": "yyyy-mm-dd", "date-autoclose": true, "date-language": "zh-CN"}}
+            .form-group
+              label.col-sm-3.control-label.string.required
+                =t('activerecord.attributes.customer_product.period_type')
+              .col-sm-9
+                = f.input_field :period_type, as: :select, include_blank: '选择类型', selected: :day, class: 'inp-xs form-control', data:{ "period-type": true }, required:true
+                = f.input_field :period, class: "form-control mt-5 #{@customer_product.period_type.due_date? ?  'hidden' : ''}"
+                = f.input_field :end_at, as: :string, class: "form-control mt-5 #{@customer_product.period_type.due_date? ? '' : 'hidden'}", value: l(@customer_product.end_at, format: :Ymd), data: {provide: 'datepicker'}
+                / p.help-block
+                  | 可按年/月/天输入值，也可按直接选择日期
+            = f.input :money
+            = f.input :income_rate
+            = f.input :is_bind, as: :radio_buttons, wrapper: :horizontal_radio_and_checkboxes, required:true
+
+        .box-footer
+          .col-md-10
+            .col-sm-3
+            .col-sm-9
+              = f.submit :class => 'btn btn-primary'

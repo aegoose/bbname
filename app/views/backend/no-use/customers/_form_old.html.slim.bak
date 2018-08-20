@@ -1,0 +1,110 @@
+.row
+  .col-md-12.horz-form
+    /= f.error_notification
+    / = render 'layouts/error_tip'
+    / .panel-group#accordion[role="tablist" aria-multiselectable="true"]
+    .panel.panel-default.box.box-primary.fixed.mb-5
+      .panel-heading#headOne[role="tab"]
+        h4.panel-title
+          a[role="button" data-toggle="collapse" data-parent="#accordion" href="#bodyOne" aria-expanded="true" aria-controls="bodyOne"]
+            | 客户信息
+      .panel-collapse.collapse.in#bodyOne[role="tabpanel" aria-labelledby="headOne"]
+        - gotoPath = @customer.new_record? ? edit_backend_customer_path(0) : ''
+        = simple_form_for [:backend,@customer], wrapper: :horizontal_form, data: {toggle: :validator, remote: true, type: :json, gotopath: "#{gotoPath}" } do |f|
+          .panel-body.box-body
+            .col-md-10
+              = f.input :catg_id, collection: [], input_html: {class: "inp-x", required: true, data: {"ajax-select2": {url: selects_backend_catgs_path(format: :json), type: :catg, slts: "#{@customer.catg_id}"}, placeholder: "选择分类"} }
+              = f.input :priority, as: :radio_buttons, wrapper: :horizontal_radio_and_checkboxes, input_html: {class: "inp-x"}
+              = f.input :source_from, as: :radio_buttons, wrapper: :horizontal_radio_and_checkboxes
+              = f.input :sex, as: :radio_buttons, wrapper: :horizontal_radio_and_checkboxes
+              = f.input :name
+              = f.input :tel
+              = f.input :email
+
+          .box-footer
+            .col-md-10
+              .col-sm-3
+              .col-sm-9
+                = f.submit class: 'btn btn-primary'
+                | &nbsp; &nbsp;
+                = link_to backend_customers_path, class: 'btn btn-default' do
+                  span.fa.fa-chevron-left=t('back')
+
+
+    - unless @customer.new_record?
+      / .panel-group#accordion[role="tablist" aria-multiselectable="true"]
+      .panel.panel-default.box.box-primary.fixed.mb-5
+        .panel-heading#headTwo[role="tab"]
+          h4.panel-title
+            a[role="button" data-toggle="collapse" data-parent="#accordion" href="#bodyTwo" aria-expanded="true" aria-controls="bodyTwo"]
+              | 客户详情
+        .panel-collapse.collapse.in#bodyTwo[role="tabpanel" aria-labelledby="headTwo"]
+          = simple_form_for [:backend,@customer], wrapper: :horizontal_form, data: {toggle: :validator, remote: true, type: :json} do |f|
+            .panel-body.box-body
+              .col-md-10
+                = f.input :qq
+                = f.input :wechat
+                = f.input :birthday, as: :string, input_html:{ data: {provide: 'datepicker', "date-format": "yyyy-mm-dd", "date-autoclose": true, "date-language": "zh-CN"} }
+                = f.input :education
+                = f.input :interest
+                = f.input :area
+                = f.input :address
+                = f.input :post_code
+            .box-footer
+              .col-md-10
+                  .col-sm-3
+                  .col-sm-9
+                    = f.submit class: 'btn btn-primary'
+                    | &nbsp; &nbsp;
+                    = link_to backend_customers_path, class: 'btn btn-default' do
+                      span.fa.fa-chevron-left=t('back')
+
+
+      / .panel-group#accordion[role="tablist" aria-multiselectable="true"]
+      .panel.panel-default.box.box-primary.fixed.mb-5
+        .panel-heading#headThree[role="tab"]
+          h4.panel-title
+            a[role="button" data-toggle="collapse" data-parent="#accordion" href="#bodyThree" aria-expanded="true" aria-controls="bodyThree"]
+              | 公司信息
+        .panel-collapse.collapse.in#bodyThree[role="tabpanel" aria-labelledby="headThree"]
+          = simple_form_for [:backend,@customer], wrapper: :horizontal_form, data: {toggle: :validator, remote: true, type: :json} do |f|
+            .panel-body.box-body
+              .col-md-10
+                = f.input :job_title
+                = f.input :company_name
+                = f.input :company_nature
+                = f.input :company_scale
+                = f.input :office_tel
+                = f.input :office_fax
+                = f.input :office_address
+                = f.input :office_post_code
+            .box-footer
+              .col-md-10
+                  .col-sm-3
+                  .col-sm-9
+                    = f.submit class: 'btn btn-primary'
+                    | &nbsp; &nbsp;
+                    = link_to backend_customers_path, class: 'btn btn-default' do
+                      span.fa.fa-chevron-left=t('back')
+
+
+      / .panel-group#accordion[role="tablist" aria-multiselectable="true"]
+      .panel.panel-default.box.box-primary.fixed.mb-5
+        .panel-heading#headFour[role="tab"]
+          h4.panel-title
+            a[role="button" data-toggle="collapse" data-parent="#accordion" href="#bodyFour" aria-expanded="true" aria-controls="bodyFour"]
+              | 其他
+        .panel-collapse.collapse.in#bodyFour[role="tabpanel" aria-labelledby="headFour"]
+          = simple_form_for [:backend,@customer], wrapper: :horizontal_form, data: {toggle: :validator, remote: true, type: :json} do |f|
+            .panel-body.box-body
+              .col-md-10
+                = f.input :tags
+                = f.input :remark, input_html: {class: "mh100"}
+            .box-footer
+              .col-md-10
+                  .col-sm-3
+                  .col-sm-9
+                    = f.submit class: 'btn btn-primary'
+                    | &nbsp; &nbsp;
+                    = link_to backend_customers_path, class: 'btn btn-default' do
+                      span.fa.fa-chevron-left=t('back')

@@ -1,0 +1,93 @@
+//翻页
+$main-color  :#00b7ee!default;
+$grey-dark:               #566c7b;
+$grey-darken:             #34495e;
+
+.paging {
+  text-align: right;
+  // padding: 20px;
+  nav {
+    display: inline-block;
+  }
+  .paging-info {
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+}
+
+.paging{
+  nav{
+    ul.pagination{
+      margin: 0px;
+      vertical-align: middle;
+      li a {
+        background:none;
+        &:hover{
+          // background:$grey-dark;
+          color:$primary-color;
+        }
+      }
+      > li {
+        > a, > span {
+          border: none;
+          border-radius: 3px;
+          padding: 0 7px;
+          line-height: 30px;
+        }
+      }
+      .disabled{
+        a{
+          &:hover{
+            background:none;
+            color:$grey-dark;
+          }
+        }
+      }
+      .prev a, .next a{
+        background:$grey-dark;
+        color:#fff;
+        &:hover{
+          color:#fff;
+          background:$grey-darken;
+        }
+      }
+    }
+  }
+}
+.cus-pagination {
+  margin: 0 10px 0;
+  vertical-align: middle;
+  display: inline-block;
+
+  li {
+    display: inline-block;
+
+    a {
+      display: block;
+      color: $grey-dark;
+      padding: 0 7px;
+      line-height: 36px;
+
+      &:hover {
+        color: $main-color;
+      }
+    }
+
+
+  }
+  .prev, .next {
+    a {
+      border-radius: 4px;
+      background-color: $grey-dark;
+      border-bottom: 3px solid $grey-darken;
+
+      padding: 0 10px;
+      margin: 0 5px;
+      color: white;
+
+      &:hover {
+        background-color: $grey-darken;
+      }
+    }
+  }
+}

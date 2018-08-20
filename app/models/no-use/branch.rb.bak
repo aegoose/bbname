@@ -1,0 +1,35 @@
+# == Schema Information
+#
+# Table name: branches
+#
+#  id          :integer          not null, primary key
+#  distinct_id :string(50)
+#  name        :string(100)
+#  branch_no   :string(50)
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#
+# Indexes
+#
+#  index_branches_on_branch_no    (branch_no) UNIQUE
+#  index_branches_on_distinct_id  (distinct_id)
+#  index_branches_on_name         (name) UNIQUE
+#
+
+class Branch < ApplicationRecord
+  second_level_cache expires_in: 1.week # second_level_cache
+
+  belongs_to :distinct, class_name: :Area, foreign_key: :distinct_id, optional:true
+
+  has_many :customers, dependent: :restrict_with_error # 网点客户
+  has_many :customer_products, dependent: :restrict_with_error # 网点客户产品
+  has_many :admins, dependent: :restrict_with_error # 网点用户
+
+  validates :distinct_id, presence: true
+  validates :branch_no, presence: true, uniqueness: { case_sensitive: false}
+  validates :name, presence: true, uniqueness: { case_sensitive: false}
+  validates_format_of :branch_no, with: /^[0-9]+$/, :multiline => true, :message=> :invalid_format
+
+  include CustomerCountable # redis缓存处理
+  include CustomerTagsable # redis缓存处理
+end

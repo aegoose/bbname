@@ -1,0 +1,11 @@
+= simple_form_for([:backend,@area]) do |f|
+  /= f.error_notification
+  = render 'layouts/error_tip'
+
+  .box-body
+    = f.input :name
+    = f.input :zone
+    = f.input :seq
+
+  .box-footer
+    = f.button :submit, :class => 'btn btn-primary'

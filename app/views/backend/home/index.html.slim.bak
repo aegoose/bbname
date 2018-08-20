@@ -1,0 +1,163 @@
+- content_for :title
+  | 客户信息列表
+
+- if @top_stats && @counts.respond_to?(:size)  && @counts.size > 0
+  .h20
+  .row.pl-30.pr-30
+    =render partial: 'stats'
+  .h20
+.row
+  .col-md-12
+    .box.box-primary
+      .box-header.with-border
+        / h3 客户列表
+        = simple_form_for :query, url: backend_root_path, method: :get, wrapper: :inline_form, html: { id: :collapsePar } do |f|
+          =f.input :assets_level, as: :hidden, input_html: {value: @qr[:assets_level]}
+          =f.input :branch_id, as: :hidden, input_html: {value: @qr[:branch_id]}
+          =f.input :tags, as: :hidden, input_html: {value: @qr[:tags]}
+          =f.input :catg, as: :hidden, input_html: {value: @qr[:catg]}
+          - unless @qr.blank?
+            .query.clearfix class="#{!@show_out ? 'with-border mb-10' : ''}"
+              .query-item.pull-left.query-label
+                .color.red
+                  | 查询结果：
+
+              - unless @qr[:assets_level].blank?
+                - asset_name = (Customer.assets_level.options.select { |x| x[1]==@qr[:assets_level] }.first || [])[0]
+                .query-item.pull-left.bg-primary.query-label
+                  .label
+                    | 资产级别:
+                    = asset_name
+                  a.label data-query="assets_level" data-close="#{@qr[:assets_level]}"
+                    i.fa.fa-times-circle-o
+              - unless @qr[:branch_id].blank?
+                - br_name = Branch.where(id: @qr[:branch_id]).select(:name).first&.name
+                .query-item.pull-left.bg-primary.query-label
+                  .label
+                    | 网点:
+                    = br_name || @qr[:branch_id]
+                  a.label data-query="branch_id" data-close="#{@qr[:branch_id]}"
+                    i.fa.fa-times-circle-o
+              - unless (catg = cus_idex_catg(@qr[:catg])).blank?
+                .query-item.pull-left.bg-primary.query-label
+                    .label
+                      | 分类:
+                      = catg[0]
+                    a.label data-query="catg" data-close="#{@qr[:catg]}"
+                      i.fa.fa-times-circle-o
+              - unless @qr[:tags].blank?
+                .query-item.pull-left.bg-primary.query-label
+                  .label
+                    | 标签:
+                    = @qr[:tags]
+                  a.label data-query="tags" data-close="#{@qr[:tags]}"
+                    i.fa.fa-times-circle-o
+              - unless @qr[:key].blank?
+                = f.input :key, as: :hidden, input_html: {value: @qr[:key]}
+                .query-item.pull-left.bg-primary.query-label
+                  .label
+                    | 关键字 :
+                    = @qr[:key]
+                  a.label data-query="key" data-close="#{@qr[:key]}"
+                    i.fa.fa-times-circle-o
+              - unless @qr[:birthday].blank?
+                .query-item.pull-left.bg-primary.query-label
+                  .label
+                    | 生日 :
+                    = "#{@qr[:birthday]}月份"
+                  a.label data-query="key" data-close="#{@qr[:key]}"
+                    i.fa.fa-times-circle-o
+
+
+          - if !@hide_cond
+            .query.clearfix
+              - if @qr[:assets_level].blank?
+                .query-item.pull-left
+                  button.btn.btn-default type="button" data-toggle="collapse" data-target="#collapseAssets" data-parent="#collapsePar" aria-expanded="true" aria-controls="collapseAssets"
+                    | 选择资产级别
+                    | &nbsp;
+                    span.caret
+
+              - if @qr[:branch_id].blank? && policy(:Customer).filter_by_branch?
+                .query-item.pull-left
+                  button.btn.btn-default type="button" data-toggle="collapse" data-target="#collapseBranches" data-parent="#collapsePar" aria-expanded="true" aria-controls="collapseBranches"
+                    | 选择网点
+                    | &nbsp;
+                    span.caret
+
+              - if (catg = cus_idex_catg(@qr[:catg])).blank?
+                .query-item.pull-left
+                  .btn-group
+                    a.btn.btn-default data-toggle="collapse" data-target="#collapseCatg" data-parent="#collapsePar" aria-expanded="false" aria-controls="collapseCatg"
+                      | 选择分类
+                      | &nbsp;
+                      span.caret
+
+              - if @qr[:tags].blank? && policy(:Customer).filter_by_tags?
+                .query-item.pull-left
+                  .btn-group
+                    a.btn.btn-default data-toggle="collapse" data-target="#collapseTags" data-parent="#collapsePar" aria-expanded="false" aria-controls="collapseTags"
+                      | 选择标签
+                      | &nbsp;
+                      span.caret
+
+              - if @qr[:key].blank?
+                .query-item.pull-left
+                  = f.input :key, placeholder: qr_t("query.customer.by_key")
+
+              - if @qr[:birthday].blank? && !@hide_birthday_cond
+                .query-item.pull-left
+                  = f.input :birthday, collection: (1..12).map{|x| ["#{x}月", x] }, include_blank: '生日月份'
+
+          .hidden
+            =f.submit
+
+          / .well-sm.padding-10.pl-20.pr-20
+          .panel.fixed.cleared
+            .collapse.customer_tags.query#collapseAssets
+              ul.clearfix
+                - Customer.assets_level.options.each do |opt|
+                  li
+                    a.btn.btn-default data-query="assets_level" data-value="#{opt[1]}"
+                      = opt[0]
+
+            - unless (catgs = cus_index_catgs).blank?
+                .collapse.customer_tags.query#collapseCatg
+                  ul.clearfix
+                    - catgs.each do |catg|
+                      li
+                        a.btn.btn-default data-query="catg" data-value="#{catg[1]}"
+                          = catg[0]
+                          / | &nbsp;
+                          / = "(#{catg[1].to_i})"
+            - if !@tags.blank? && policy(:Customer).filter_by_tags?
+                .collapse.customer_tags.query#collapseTags
+                  ul.clearfix
+                    - @tags.each do |tg|
+                      li
+                        a.btn.btn-default data-query="tags" data-value="#{tg[0]}"
+                          = tg[0]
+                          | &nbsp;
+                          = "(#{tg[1].to_i})"
+
+            - if !@branches.blank? && policy(:Customer).filter_by_branch?
+              .collapse.customer_tags.query#collapseBranches
+                ul.clearfix
+                  - @branches.each do |branch|
+                    li
+                      a.btn.btn-default data-query="branch_id" data-value="#{branch.id}"
+                        = branch.name
+
+      .box-body.table-wrapper.table-responsive.small-edit
+        .row.accordion-panel-group
+          =render partial: 'title_list'
+      .box-footer
+        .paging
+          = paginate @customers
+          = page_entries_info @customers
+      .box-footer
+  / .col-md-12
+    .panel.panel-default
+      .panel-body.panel-group.accordion-panel-group[id="accordion11" role="tablist" aria-multiselectable="true"]
+        .row
+          =render partial: 'title_list'

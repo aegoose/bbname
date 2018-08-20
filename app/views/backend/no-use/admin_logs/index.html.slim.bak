@@ -1,0 +1,35 @@
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.admin_log')
+          = t('list')
+          | &nbsp;&nbsp;
+        .box-tools.right-bottom.query
+        .query.clearfix
+          = simple_form_for :query, url: backend_admin_logs_path, method: :get, wrapper: :inline_form do |f|
+            .query-item.pull-left.inp-m
+              = f.input :key, placeholder: qr_t("query.admin_log.by_key"), input_html: {value: @qr[:key]}
+      .box-body.table-responsive
+        table.table.table-striped.table-bordered.table-hover
+          thead
+            tr
+              th = t('activerecord.attributes.admin_log.classify')
+              th = t('activerecord.attributes.admin_log.title')
+              th = t('activerecord.attributes.admin_log.content')
+              th = t('activerecord.attributes.admin_log.result')
+              th
+          tbody
+          - @admin_logs.each do | admin_log |
+            tr
+            td = admin_log.classify.text
+            td = admin_log.title
+            td = admin_log.content
+            td = admin_log.result
+            td
+              = link_to t('show'), backend_admin_log_path(admin_log)
+              | &nbsp;|&nbsp;
+              = link_to t('edit'), edit_backend_admin_log_path(admin_log)
+              | &nbsp;|&nbsp;
+              = link_to t('destroy'), backend_admin_log_path(admin_log), method: :delete, data: { confirm: '确定要删除吗'}

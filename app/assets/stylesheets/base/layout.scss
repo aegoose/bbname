@@ -1,0 +1,64 @@
+//##
+$font-family-sans-serif: "\5FAE\8F6F\96C5\9ED1", 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+//designer color schemes
+//设计师配色方案
+$main-color  :#00b7ee!default;
+$main-success:#0cc019;
+$main-info   :#00c0ef;
+$main-warning:#f39c12;
+$main-danger :#e74c3c;
+
+$z-content: 0;
+$z-popup  : 100;
+$z-top    : 9999;
+
+html,body{
+  height: 100%;
+}
+body {
+  font-family: $font-family-sans-serif;
+  background:#eceef2;
+}
+ul{
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+a:hover{
+  text-decoration: none;
+}
+
+//==override select style
+//
+//********
+
+select.form-control{
+  border-radius: 0;
+  appearance:none;
+  -moz-appearance:none;
+  -webkit-appearance:none;
+  background: image_url('arrow.png') no-repeat scroll right center #fff;
+  padding-right: 31px;
+}
+select::-ms-expand { display: none; }
+
+
+//==turbolink-progress-bar style
+//
+//********
+
+.turbolinks-progress-bar {
+  height: 3px;
+  background-color: $main-color;
+}
+
+
+//== mainbody页面主体
+//
+//***********
+
+.wrapper{
+  min-height: 100%;
+  position: relative;
+}
+

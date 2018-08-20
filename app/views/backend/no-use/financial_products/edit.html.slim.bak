@@ -1,0 +1,5 @@
+= content_for :title
+  = t("edit")
+  = t('models.financial_product')
+  strong = "\"#{@financial_product.name}\""
+= render 'form'

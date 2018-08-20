@@ -1,0 +1,96 @@
+.row
+  .col-sm-12
+    .box.box-primary
+      .box-header.with-border
+        h3
+          = t('models.customer')
+          = t('info')
+        .box-tools.right-bottom.query
+          /-if policy(:customer).edit?
+            .query-item.pull-left
+              = link_to edit_backend_customer_path(@customer), class: 'btn btn-primary btn-sm' do
+                span.fa.fa-edit=t('edit')
+          .query-item.pull-left
+            - if policy(CustomerProduct).new? && !@customer.blank?
+              = link_to new_backend_customer_product_path(customer_id: @customer), class: 'btn btn-primary btn-sm' , data: {modal: true} do
+                span.fa.fa-plus-square
+                  = t('new')
+                  = t('models.customer_product')
+              | &nbsp;
+            - if policy(:bank_card).new? && !@customer.blank?
+              = link_to new_backend_bank_card_path(customer_id: @customer), class: 'btn btn-primary btn-sm' , data: {modal: true } do
+                i.fa.fa-plus-square
+                  = t('new')
+                  = t('models.bank_card')
+              | &nbsp;
+
+      .box-body.small-edit
+        dl.dl-horizontal
+          dt=t('activerecord.attributes.customer.branch_id')
+          dd= @customer.area_name
+          dt=t('activerecord.attributes.customer.name')
+          dd = @customer.name
+          dt=t('activerecord.attributes.customer.assets_level')
+          dd
+            span[class="assets bg #{@customer.assets_level}"]
+              = @customer.assets_level.text
+          dt=t('activerecord.attributes.customer.tags')
+          dd
+            - @customer.tags_list.each do |tg|
+              span.tag_at.label.label-primary=tg
+          dt=t('activerecord.attributes.customer.area_zone')
+          dd = @customer.branch_name
+          dt=t('activerecord.attributes.customer.address')
+          dd
+           = @customer.address
+           = "(#{@customer.post_code})" if @customer.post_code
+          hr/
+          dt=t('activerecord.attributes.customer.sex')
+          dd = @customer.sex_text
+          dt=t('activerecord.attributes.customer.tel')
+          dd = @customer.tel
+          dt=t('activerecord.attributes.customer.id_card')
+          dd = @customer.id_card
+          dt=t('activerecord.attributes.customer.birthday')
+          dd = l @customer.birthday, format: :cn_Ymd unless @customer.birthday.blank?
+          hr/
+          dt=t('activerecord.attributes.customer.card_no')
+          dd.link-group
+            = @customer.card_no
+            | &nbsp;&nbsp;
+            = link_to backend_bank_cards_path("query[customer]" => @customer.name), class: "link-btn invisible"
+                i.fa.fa-angle-double-right 更多
+          - if @customer.last_fix
+            dt=t('activerecord.attributes.customer.fix_product_id')
+            dd.link-group
+              = render partial: 'layouts/partial/product_period', locals: {product: @customer.last_fix}
+              | &nbsp;&nbsp;
+              = link_to backend_customer_products_path(customer_id: @customer.id, 'q[classify]'=> :fix), class: "link-btn invisible"
+                i.fa.fa-angle-double-right 更多
+          - if @customer.last_insure
+            dt=t('activerecord.attributes.customer.insure_product_id')
+            dd.link-group
+              = render partial: 'layouts/partial/product_period', locals: {product: @customer.last_insure}
+              | &nbsp;&nbsp;
+              = link_to backend_customer_products_path(customer_id: @customer.id, 'q[classify]'=> :insure), class: "link-btn invisible"
+                i.fa.fa-angle-double-right 更多
+          - if @customer.last_financial
+            dt=t('activerecord.attributes.customer.financial_product_id')
+            dd.link-group
+              = render partial: 'layouts/partial/product_period', locals: {product: @customer.last_financial}
+              | &nbsp;&nbsp;
+              = link_to backend_customer_products_path(customer_id: @customer.id, 'q[classify]'=> :financial), class: "link-btn invisible"
+                i.fa.fa-angle-double-right 更多
+          hr/
+          dt=t('activerecord.attributes.customer.created_at')
+          dd
+            = l @customer.created_at, format: :cn_YmdHMS
+          dt=t('activerecord.attributes.customer.last_import_at')
+          dd
+            = l @customer.last_import_at, format: :cn_YmdHMS unless @customer.last_import_at.blank?
+          hr/
+          dt
+          dd
+            = link_to backend_customers_path, class: 'btn btn-default btn-sm' do
+              span.fa.fa-chevron-left=t('back')
+      .box-footer

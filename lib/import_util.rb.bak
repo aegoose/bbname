@@ -1,0 +1,386 @@
+# encoding: UTF-8
+
+class ImportUtil
+  @@dists = {}
+
+  def self.import_cus_by_row!(by_manager, curr_adm, admlog, row)
+    # row = Hash[[header, spreadsheet.row(i)].transpose]
+    distinct_cn = get_str(row[0]) # 镇区
+    branch_cn = get_str(row[1]) # 网点
+    branch_id = get_int_str(row[2]) # 网点机构号
+    cname = get_str(row[3]) # 居民姓名
+    sex_cn = get_str(row[4]) # 性别
+    idcard = get_str(row[5]) # 证件号
+    tel = get_int_str(row[6]) # 联系电话
+    area_zone = get_str(row[7]) # 小区/村名
+    addr = get_str(row[8]) # 联系地址
+    card_no = get_int_str(row[9]) # 卡号
+    fix_cn = get_str(row[10]) # 定期
+    insure_cn = get_str(row[11]) # 保险
+    financial_cn = get_str(row[12]) # 理财
+    tags = get_str(row[13]) || '' # 其他标签， 如“a,b,c”
+    adm_cn = get_str(row[14]) # 所属客户经理, 客户经理名字
+
+    # logger.info(row)
+
+    manager = curr_adm
+    raise "导入人[#{curr_adm.name}]与客户经理[#{adm_cn}]不匹配" if by_manager && manager.name != adm_cn
+
+    dist_id = get_dist(distinct_cn)
+    branch = get_branch!(dist_id, branch_id, branch_cn)
+    raise "找不到网点信息(#{distinct_cn}/#{branch_cn})" if branch.blank?
+
+    if !by_manager
+      manager = get_manager!(curr_adm, adm_cn, branch)
+      raise "导入的客户经理[#{adm_cn}]不存在" if manager.blank?
+    end
+
+    cus = get_customer(manager, cname, tel)
+    raise "找不到客户信息(#{cname}/#{tel})" if cus.blank?
+    cus.branch = branch
+    cus.distinct_id = dist_id
+    cus.manager = manager
+
+    idcardno, birth, gender = get_id_card(idcard, sex_cn)
+    raise "身份证(#{idcard})格式不正确" if idcardno.blank?
+    cus.id_card = idcardno unless idcardno.blank?
+    cus.birthday = birth.to_date unless birth.blank?
+    cus.sex = gender unless gender.blank?
+
+    cus.area_zone = area_zone unless area_zone.blank?
+    cus.address = addr unless addr.blank?
+    cus.card_no = card_no
+    # cus.load_last_card(card_no) # 加载卡号
+    p_errs = load_products(cus, fix_cn, insure_cn, financial_cn)
+    cus.tags = tags.split(',').join(' ') unless tags.blank?
+
+    # 日志
+    cus.last_import = admlog
+
+    # FIXME: 当更新customer的时候，last_xxx没有被更新上
+    isok = cus.save
+    if !isok
+      unless cus.errors.messages.blank?
+        p_errs << cus.errors.messages.map { |k, v| "#{k}#{v[0]}" }.join(',')
+      end
+      if errs = (cus.last_fix&.errors) && ! errs.messages.blank?
+        p_errs << cus.last_fix.errors.messages.map { |k, v| "#{k}#{v[0]}" }.join(',')
+      end
+      if errs = (cus.last_insure&.errors) && ! errs.messages.blank?
+        p_errs << cus.last_insure.errors.messages.map { |k, v| "#{k}#{v[0]}" }.join(',')
+      end
+      if errs = (cus.last_financial&.errors) && !errs.messages.blank?
+        p_errs << cus.last_financial.errors.messages.map { |k, v| "#{k}#{v[0]}" }.join(',')
+      end
+
+      p_errs = ['保存客户到数据库出错'] if p_errs.blank?
+      raise p_errs.join(',')
+    end
+
+    [cus, p_errs.join(',')]
+  end
+
+  #
+  def self.get_int_str(intstr)
+    get_str("#{intstr&.to_i}")
+  end
+
+  def self.get_str(str)
+    ss = "#{str}".strip
+    ss = nil if ss == '无' || ss == '-'
+    ss
+  end
+
+  # 解析地区
+  def self.get_dist(dist_cn)
+    get_dg_dist(dist_cn)
+  end
+
+  # 解析东莞的地区
+  def self.get_dg_dist(dist_cn)
+    # xx镇/区
+    # FIXME: 获取国省市
+    if @@dists.blank?
+      @@dists = {}
+      Area.dg_distincts.each { |x| @@dists[x.name] = x.id }
+    end
+    if /(镇|区)$/.match? dist_cn
+      dist_id = @@dists[dist_cn]
+    else
+      dist_id = @@dists["#{dist_cn}镇"]
+      dist_id = @@dists["#{dist_cn}区"] if dist_id.blank?
+    end
+    dist_id
+  end
+
+  # 解析网点信息
+  def self.get_branch!(dist_id, brid, brcn)
+    br = Branch.find_by_branch_no(brid.to_i)
+    br = Branch.find_by_name(brcn) if br.blank?
+    br = Branch.create(distinct_id: dist_id, name: brcn, branch_no: brid) if br.blank?
+    br
+  end
+
+  # 获取客户经理
+  def self.get_manager!(curr_adm, name_cn, branch)
+    return nil if name_cn.blank?
+    adm = Admin.find_by_name(name_cn)
+    if adm.blank?
+      adm = Admin.new(name: name_cn, role: :manager)
+      adm.username = adm.word_to_pingyin(name_cn).gsub(/\s/, '')
+      adm.desc = "由[#{curr_adm.name}导入数据时创建"
+      adm.branch = branch
+      adm.password = "123456"
+      adm.email = "#{adm.username}@bbname.com"
+      adm.save
+    end
+    adm
+  end
+
+  ## 获取客户信息
+  #
+  def self.get_customer(manager, cname, tel)
+    return nil if cname.blank?
+
+    cus = manager.customers.find_by_name(cname)
+
+    cus = manager.customers.find_by_tel(tel) if cus.blank?
+
+    cus = Customer.new(name: cname) if cus.blank?
+
+    cus.tel = tel unless tel.blank?
+
+    cus.name = cname
+
+    cus
+  end
+
+  # 解析身份证号及生日/性别
+  #
+  def self.get_id_card(card_no, sex)
+    # 地区码  生日     顺序号 校验码
+    # xxxxxx yyyyMMDD xxx X
+    # 男=顺序码奇数， 女=顺序码偶数
+    # 校验码：1-10, 10=X
+    #
+    idcard = nil
+    birthday = nil
+    gender = nil
+    if IdCardUtil.check_id_card(card_no)
+      gender, birthday = IdCardUtil.get_id_card_info(card_no)
+      idcard = card_no
+      # birthday = birthday.to_date
+    end
+
+    (gender = (sex == '男' ? :boy : :girl)) unless sex.blank?
+
+    [idcard, birthday, gender]
+  end
+
+  # 加载产品
+  #
+  def self.load_products(cus, fix_cn, insure_cn, financial_cn)
+    # 格式：
+    #   yyyy-mm-dd,x[年|月|日|天],x.x万
+    #   yyyy-mm-dd,yyyy-mm-dd,x.x万
+    # 举例：
+    #   2017-8-1,4年,5万
+    #   2017-8-1,180天,4.5万
+    #
+    reg2 = /^(\d{4}-\d{1,2}-\d{1,2}),((\d+)([年|月|日|天])|(\d{4}-\d{1,2}-\d{1,2}))(,(\d+(\.\d+)?)万)?$/i
+    msges = []
+
+    { fix: fix_cn, insure: insure_cn, financial: financial_cn }.each do |kty, vproduct|
+      arr = reg2.match(vproduct)
+
+      if arr.blank? # 匹配失败则不加载商品
+        msges << "#{kty}的产品#{vproduct}格式不符"
+        next
+      end
+
+      sdate = arr[1]
+      edate = arr[5]
+      pnum = arr[3].to_i
+      ptype_cn = arr[4]
+      money = arr[7].to_f # 万为单位
+
+      classify = kty.to_sym
+      attrs = CustomerProduct.parse_attrs(sdate, edate, ptype_cn, pnum, money)
+      pp = cus.products.product_at(classify, attrs[:begin_at.to_s], attrs[:end_at.to_s]).first
+
+      if pp.blank?
+        attrs['classify'] = classify
+        pp = cus.products.new(attrs)
+      else
+        pp.attributes = attrs.compact
+      end
+      # logger.warn "--#{classify}--#{kty}-#{sdate}, #{edate}, #{pnum}, #{ptype_cn}, #{money} -#{attrs} ---#{pp}---"
+      pp.branch = cus.branch if pp.branch_id.blank?
+      pp.manager = cus.manager if pp.admin_id.blank?
+
+      case classify
+      when :fix
+        cus.last_fix = pp
+      when :insure
+        cus.last_insure = pp
+      when :financial
+        cus.last_financial = pp
+      end
+    end
+
+    msges
+  end
+
+  #################
+  # 测试专用
+
+  def self.rnd_tel
+    "1#{rand(9)}#{'0123456789'.split(//).sample(9).join}"
+  end
+
+  def self.rnd_tags
+    %w(商家 烟草 投资 政府 外企 居民 服装 超市 房地产 商城).sample(2).join(',')
+  end
+
+  def self.rnd_prods
+    ty = rand(100)%2 == 1
+    money = rand(200)
+    if ty
+      per = rand(200)
+      ymd = %w(年 月 日).sample(1).first
+      st = Time.now - rand(50).day + rand(100).day
+      "#{st.to_date.to_s},#{per}#{ymd},#{money}万"
+    else
+      st = Time.now - rand(50).day + rand(100).day
+      ed = st + rand(300).day
+      "#{st.to_date.to_s},#{ed.to_date.to_s},#{money}万"
+    end
+  end
+
+  ## 按产品经理生成，分割成不同的xls
+  def self.gen_cus_xls(filename, outpath=nil)
+    spreadsheet = Roo::Spreadsheet.open(filename, { csv_options: { encoding: Encoding::GB2312 } })
+
+    h_num = 1
+    header = spreadsheet.row(1)
+
+    if header.length != 15
+      # logger.error "导入文档格式不正确"
+      puts "-----error"
+      return
+    end
+
+    # 去掉多少行数据
+    title = "sheet"
+    if (h1 =header.reject(&:blank?)).length == 1
+      title = h1[0]
+      h2 = spreadsheet.row(2)
+      h3 = spreadsheet.row(3)
+      header = header.length.times.map do |i|
+        a = h2[i]
+        a = h3[i] unless h3[i].blank?
+        a
+      end
+      h_num = 3
+    end
+
+    # 镇区  网点  网点机构号 居民姓名  性别  证件号 联系电话  小区/村名 联系地址  卡号  定期  保险  理财  其他标签  所属客户经理
+
+    last_row = spreadsheet.last_row
+    begin_row = h_num + 1
+
+    maps = {}
+
+
+    fname = File.join(outpath, "all.xlsx")
+    File.delete(fname) if File.exists? fname
+    p = Axlsx::Package.new
+    p.workbook.add_worksheet(name: title) do |wb|
+      wb.add_row(header)
+      (begin_row..last_row).each do |i|
+        row = spreadsheet.row(i)
+
+        # distinct_cn = get_str(row[0]) # 镇区
+        # branch_cn = get_str(row[1]) # 网点
+        # branch_id = get_int_str(row[2]) # 网点机构号
+        # cname = get_str(row[3]) # 居民姓名
+        # sex_cn = get_str(row[4]) # 性别
+        idcard = get_str(row[5]) # 证件号
+        tel = get_int_str(row[6]) # 联系电话
+        # area_zone = get_str(row[7]) # 小区/村名
+        # addr = get_str(row[8]) # 联系地址
+        # card_no = get_int_str(row[9]) # 卡号
+        fix_cn = get_str(row[10]) # 定期
+        insure_cn = get_str(row[11]) # 保险
+        financial_cn = get_str(row[12]) # 理财
+        tags = get_str(row[13]) || '' # 其他标签， 如“a,b,c”
+        # adm_cn = get_str(row[14]) # 所属客户经理, 客户经理名字
+
+        row[6] = rnd_tel if tel.blank?
+        row[5] = idcard
+        row[5] = IdCardUtil.random_id_card if idcard.blank?
+        row[10] = rnd_prods if fix_cn.blank?
+        row[11] = rnd_prods if insure_cn.blank?
+        row[12] = rnd_prods if financial_cn.blank?
+        row[13] = rnd_tags if tags.blank?
+
+        wb.add_row(row)
+        # mdata = maps[adm]
+        # if mdata.blank?
+        #   mdata = []
+        #   maps[adm] = mdata
+        #   mdata.push(header)
+        # end
+        # mdata.push(row)
+      end
+      p.serialize fname
+    end
+
+    false
+
+    # maps.keys.map do |k|
+    #   mdata = maps[k]
+    #   p = Axlsx::Package.new
+    #   p.workbook.add_worksheet(name: title) do |wb|
+    #     mdata.each do |row|
+    #       wb.add_row(row)
+    #     end
+    #   end
+    #   p.serialize fname
+    # end
+
+    # 将excel按客户经理差成多份
+    #
+    # (begin_row..last_row).each do |i|
+    #   row = spreadsheet.row(i)
+    #   adm = row[14]&.strip # 所属客户经理, 客户经理名字
+    #   mdata = maps[adm]
+    #   if mdata.blank?
+    #     mdata = []
+    #     maps[adm] = mdata
+    #     mdata.push(header)
+    #   end
+
+    #   mdata.push(row)
+    # end
+    #
+    # maps.keys.map do |k|
+    #   mdata = maps[k]
+    #   unless outpath.blank?
+    #     fname = File.join(outpath, "#{k}.xlsx")
+    #     File.delete(fname) if File.exists? fname
+    #     p = Axlsx::Package.new
+    #     p.workbook.add_worksheet(name: title) do |wb|
+    #       mdata.each do |row|
+    #         wb.add_row(row)
+    #       end
+    #     end
+    #     p.serialize fname
+    #   end
+
+    #   [k, mdata[1][0], mdata[1][1], mdata[1][2]]
+    # end
+
+  end #end gen_cus_xls
+
+end

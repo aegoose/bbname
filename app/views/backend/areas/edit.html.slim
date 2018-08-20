@@ -1,0 +1,16 @@
+.row
+  .col-xs-8
+    .box.box-primary
+      .box-header.with-border
+        h3
+          =t('edit')
+          =t('models.area')
+          | &nbsp; &nbsp;
+          = link_to backend_area_path(@area), class: 'btn btn-primary btn-sm' do
+            i.fa.fa-file-o
+              =t('show')
+          | &nbsp;
+          = link_to backend_areas_path, class: 'btn btn-default btn-sm' do
+            i.fa.fa-chevron-left
+              = t('back')
+      = render 'form'
