@@ -1,3 +1,160 @@
 // Place all the styles related to the home controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+body {
+  background: #fff;
+}
+
+.fontend-nav {
+  // min-height:60px;
+  margin-bottom: 0px;
+  .elem-center {
+    align-items: center;
+    justify-content: center;
+    .center-block {
+      width: 200px;
+    }
+  }
+  .navbar-brand {
+    padding: 0px;
+    &.navbar-brand {
+      color: white;
+    }
+    img {
+      float: left;
+      margin: 8px 4px 8px 15px;
+    }
+    .nav-title {
+      float: left;
+      font-size: 25px;
+      font-family: Cursive, Georgia, Sans-serif, "Times New Roman";
+      margin: 8px 0px;
+      small {
+        display: block;
+        margin-left: 4px;
+        font-size: 9px;
+      }
+    }
+  }
+}
+
+.footer {
+  background: #202020;
+  padding: 30px 0 60px;
+  color: #959595;
+  .widget {
+    // padding: 0 30px;
+    // margin: 0 auto 30px;
+    // border-bottom: 1px solid #ebebeb;
+    .title {
+      color: #ffffff;
+      border-bottom: 1px solid #303030;
+      position: relative;
+      padding-bottom: 7px;
+      margin-bottom: 21px;
+      &:after {
+        content: "";
+        width: 90px;
+        height: 1px;
+        background: #337ab7;
+        position: absolute;
+        left: 0;
+        bottom: -1px
+      }
+    }
+    .friend-links {
+      >a {
+        &:first-child {
+          margin-left: 30px;
+        } // float:left;
+        // display:block;
+        margin: 5px 0px 5px 10px;
+      }
+    }
+  }
+}
+
+.copyright {
+  background: #111;
+  font-size: 13px;
+  text-align: center;
+  color: #555;
+  padding-top: 14px;
+  padding-bottom: 20px;
+  border-top: 1px solid #303030;
+}
+
+.footer a, .fontend-nav a, .copyright a {
+  color: #9d9d9d;
+  &:hover {
+    color: white;
+  }
+}
+
+.main-boby {
+  // min-height: 500px;
+  >.container {
+    background-color: #fff;
+  }
+}
+
+.fixed {
+  min-height: initial;
+  min-height: fit-content;
+}
+
+.cleared {
+  padding: 0;
+  margin: 0;
+  background: #fff;
+  border: none;
+  box-shadow: none;
+}
+
+/*
+ * Page: Login & Register
+ * ----------------------
+ */
+
+.user-login {
+  input {
+    height: 40px; // line-height: 40px;
+  }
+  .form-control-feedback {
+    top: 2px;
+  }
+  .login-box {
+    width: 400px;
+    margin: 7% auto;
+    min-height: 400px;
+  }
+  .login-body {
+    padding: 20px;
+    border-top: 0;
+    color: #666;
+    .form-control-feedback {
+      color: #777;
+    }
+  }
+  h2 {
+    // margin: 0;
+    text-align: center;
+    padding: 0 20px 00px 20px;
+  }
+}
+@media only screen and (max-width: 640px) {
+  .fontend-nav {
+    >.container {
+      padding: 0px;
+    }
+    .elem-center .center-block {
+      width: 100%
+    }
+  }
+  .user-login {
+    .login-box {
+      width: 100%;
+      min-height: initial;
+    }
+  }
+}

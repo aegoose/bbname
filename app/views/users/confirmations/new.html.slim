@@ -1,0 +1,18 @@
+.row.user-login
+  .col-md-3
+  .col-md-6.col-sm-12
+    .login-box
+      .login-body 
+        h2
+          | 重新发送邮箱认证
+        = simple_form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }) do |f|
+          = render 'layouts/error_tip'
+          / = f.full_error :confirmation_token
+           .form-group.has-feedback
+            = f.input :email, required: true, autofocus: true, label: false
+            span.form-control-feedback
+              i.fa.fa-envelope
+          .form-group
+            = f.submit class: 'btn btn-primary btn-block'
+          .form-group.text-right
+            = render "users/shared/links"

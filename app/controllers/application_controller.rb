@@ -54,7 +54,7 @@ class ApplicationController < ActionController::Base
 
   def storable_location?
     # navigable_format? &&
-    request.get? && !devise_controller? && !request.xhr? && request.fullpath != '/backend'
+    request.get? && !devise_controller? && !request.xhr? && !['/backend', '/'].include?(request.fullpath)
   end
   def store_user_location!
     # :user is the scope we are authenticating

@@ -3,6 +3,12 @@ require 'sidekiq-scheduler/web'
 
 #
 Rails.application.routes.draw do
+  devise_for :users, controllers: {
+    sessions:           'users/sessions',
+    passwords:          'users/passwords',
+    registrations:      'users/registrations',
+    unlocks:            'users/unlocks',
+  }
   devise_for :admins, controllers: {
     sessions:           'backend/accounts/sessions',
     passwords:          'backend/accounts/passwords',
@@ -97,8 +103,8 @@ Rails.application.routes.draw do
     root 'home#index'
   end
 
-  # root :to => 'home#index'
-  match '/', to: redirect('/backend/'), as: :root, via: [:get, :post]
+  root :to => 'home#index'
+  # match '/', to: redirect('/backend/'), as: :root, via: [:get, :post]
 
   # match '(*any)' , to: redirect('/backend/'), via: [:get, :post]
 end

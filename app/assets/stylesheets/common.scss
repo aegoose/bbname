@@ -81,3 +81,14 @@
 }
 @include generate-logger-level;
 
+
+// other 
+
+.btn i.fa:before {
+  margin-right: 3px;
+}
+
+.btn i.fa.no-text:before {
+  margin-right: 0px;
+}
+

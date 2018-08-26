@@ -1,10 +1,25 @@
 doctype html
 html
   head
-    title
-      | Manabook
+    title = t("title")
+    meta charset="utf-8"
+    meta content="webkit" name="renderer"
+    meta http-equiv="X-UA-Compatible" content="IE=edge"
+    meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
     = csrf_meta_tags
-    = stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => 'reload'
-    = javascript_include_tag 'application', 'data-turbolinks-track' => 'reload'
-  body
-    = yield
+    = stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload'
+    /[if lt IE 9]
+      = javascript_include_tag '/vendor/html5shiv.min.js'
+      = javascript_include_tag '/vendor/respond.min.js'
+      = javascript_include_tag '/vendor/ie-polyfill.js'
+    / = javascript_include_tag '/vendor/jquery.min.js'
+    = javascript_include_tag 'application', 'data-turbolinks-track': 'reload'
+
+  body data={page:"#{controller_name}_#{action_name}"}
+    #wrap
+      = render 'layouts/application_header'
+      .main-boby
+        .container
+          = yield
+    = render 'layouts/application_footer'
+

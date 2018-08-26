@@ -12,6 +12,12 @@
     - [2.2. 第二个版本](#22-第二个版本)
         - [2.2.1. Attachment](#221-attachment)
         - [2.2.2. sns](#222-sns)
+    - [2.2. 第三个版本](#22-第三个版本)
+        - [device user](#device-user)
+        - [2.2.2. wuxin_dicts五行字典](#222-wuxin_dicts五行字典)
+        - [2.2.2. bbnames  小孩名称](#222-bbnames--小孩名称)
+        - [bbname_results 取名的结果](#bbname_results-取名的结果)
+        - [](#)
 - [3. 配置](#3-配置)
     - [3.1. sidekiq配置](#31-sidekiq配置)
     - [3.2. redis配置](#32-redis配置)
@@ -156,6 +162,75 @@ rails g model SnsAccount \
 # raw_data 社会化用户的信息
 
 ```
+
+## 2.2. 第三个版本
+
+### device user
+
+```sh
+
+bundle exec rails g devise user
+bundle exec rails db:migrate
+bundle exec rails generate devise:views users
+bundle exec rails generate devise:controllers users
+
+vim routes.rb
+  devise_for :users, controllers: {
+    sessions:           'users/sessions',
+    passwords:          'users/passwords',
+    registrations:      'users/registrations',
+    unlocks:            'users/unlocks',
+  }
+
+bundle exec rails g migration addBasicAttrToUsers name:string username:string:uniq phone:string status:integer{2} role:integer
+bundle exec rails db:migrate
+```
+
+### 2.2.2. wuxin_dicts五行字典
+
+| 属性 | 名称 | 类型 | 备注 |
+| - | - | - | - |
+| 汉字 | name | varchar(2) | 索引 |
+| 拼音 | pingyin | varchar(10) | |
+| 拼音 | pingyin2 | varchar(10)| 带声调的 |
+| 所属五行 | wuxin | varchar(2) | |
+| 笔画数 | stroke | int | |
+| 是否繁体 | traditional | int(1) | default(0) |
+| 性别倾向 | sexual | int(1) | |
+
+
+### 2.2.2. bbnames  小孩名称
+
+每个人可以建多个名字项目，按生日来计
+
+
+| 属性 | 名称 | 类型 | 备注 |
+| - | - | - | - |
+| 所属地区 | area_id | int | 外键 |
+| 所属用户 | user_id | int | 外键 |
+| 姓氏 | first_name | varchar(10) | |
+| 生辰 | birthday | varchar(20) | yyyy-mm-dd hh:MM:00, 索引 |
+| 性别倾向 | sexual | int(1) | |
+| 名字类型 |  | int(1) | 0未知 1单字 2双字 |
+| 喜用五行 | hobby_wuxin | int| 限制五行的选择，金木水火地 - 0x11111, 0表示不限制，首尾字只能从限制五行取五行 |
+| 首次五行 | first_wuxin | int | 金木水火地 - 0x11111, 0表示不限制 |
+| 尾字五行 | last_wuxin | int | 金木水火地 - 0x11111, 0表示不限制 |
+| 首字汉字 | first_words | varchar(200) | 限制用字, 空表示不限制 |
+| 尾字汉字 | last_words | varchar(200) | 限制用字, 空表示不限制 |
+| | | | |
+| 取名状态 | status | int(2) | 0:未取名 1:已取名 |
+| | | | |
+| 最终名字 | last_name | varchar(10) | 最终的名字 |
+| 五行评分 | wuxin_score | int | 0-100 |
+| 五格评分 | wuge_score | int | 0-100 |
+
+### bbname_results 取名的结果
+
+| 姓氏 | first_name | varchar(10) | |
+
+
+
+### 
 
 # 3. 配置
 

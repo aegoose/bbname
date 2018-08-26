@@ -1,0 +1,17 @@
+.row.user-login
+  .col-md-3
+  .col-md-6.col-sm-12
+    .login-box
+      .login-body 
+        h2
+          | 忘记密码
+        = simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f|
+          = render 'layouts/error_tip'
+          .form-group.has-feedback
+            = f.input :email, required: true, autofocus: true, label: false
+            span.form-control-feedback
+              i.fa.fa-email
+          .form-group
+            = f.submit class: 'btn btn-primary btn-block'
+          .form-group.text-right
+            = render "users/shared/links"

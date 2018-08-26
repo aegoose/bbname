@@ -183,6 +183,8 @@ group :development do
   # gem 'capistrano-sidekiq'
   gem 'capistrano-sidekiq', '~> 1.0'
   gem 'better_errors'
+  # gem 'solargraph'
+  # gem 'rubocop'
 
 end
 

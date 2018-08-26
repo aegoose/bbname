@@ -55,6 +55,7 @@ zh-CN:
   input_placeholder: '输入内容 ...'
   unknow: '未知'
   are_you_sure: "确定要删除指定记录?"
+  title: '宝宝取名工具'
 
   admin:
     add: "添加%{title}"

@@ -1,0 +1,58 @@
+nav.navbar.navbar-inverse.fontend-nav
+  .container
+    - if devise_controller?
+			.elem-center
+				.center-block
+					.navbar-header
+						button.navbar-toggle.collapsed data-toggle="collapse" data-target="#bs-navbar-collapse-1" aria-expanded="false"
+							span.sr-only 切换导航
+							span.icon-bar
+							span.icon-bar
+							span.icon-bar
+						=link_to root_path, class: 'navbar-brand' do
+							= image_tag "logo.png"
+							.nav-title
+								= t('title')
+								small bbname.oocitizen.cn
+    - else
+      .navbar-header
+        button.navbar-toggle.collapsed data-toggle="collapse" data-target="#bs-navbar-collapse-1" aria-expanded="false"
+          span.sr-only 切换导航
+          span.icon-bar
+          span.icon-bar
+          span.icon-bar
+        =link_to '#', class: 'navbar-brand' do
+          = image_tag "logo.png"
+          .nav-title
+            = t('title')
+          	small bbname.oocitizen.cn
+      .collapse.navbar-collapse#bs-navbar-collapse-1
+				ul.nav.navbar-nav.navbar-right
+					- if user_signed_in?
+						li.dropdown.notifications-menu
+							= link_to '#', class: 'dropdown-toggle', data: {toggle: 'dropdown'} do
+								= image_tag "girl.png", class: "user-image"
+								= current_user.username
+								i.fa.fa-angle-down
+							ul.dropdown-menu
+								li.header.text-right
+									span
+										i.text-muted
+											| 登录于：
+											= l current_user.current_sign_in_at, format: :cn_YmdH
+								li
+									ul.menu
+										li
+											= link_to edit_user_registration_path do
+												i.fa.fa-unlock-alt.text-warning
+													| 修改密码
+										li
+											= link_to destroy_user_session_path, method: :delete do
+												i.fa.fa-sign-out.text-warning
+													| 退出登录
+					- else
+						li.user.user-menu
+							= link_to new_user_session_path do
+								i.fa.fa-sign-in 
+									| 登录
+				= render_navigation(context: :app)

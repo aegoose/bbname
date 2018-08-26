@@ -1,0 +1,25 @@
+footer.navbar-fixed-bottom
+  - unless devise_controller? 
+    .footer
+      .container
+        .row
+          .col-md-1
+          .col-sm-12.col-md-10
+            .widget
+              h4.title 友情链接：
+              .friend-links.clearfix
+                - {'阿里云IoT' => 'https://iot.aliyun.com/', '阿里智能开放平台' => 'https://open.alink.aliyun.com/docs/open/index.html',  '华为IoT' => 'https://www.huaweicloud.com/product/iot.html', '戴尔中国' => 'http://www.dell.com/', '龙芯官网' => 'http://www.loongson.cn/index.html', '中兴' => 'https://www.zte.com.cn/china/', '美国高通' => 'https://www.qualcomm.cn', '站长资源' => 'http://www.2898.com/'}.each do |k, v|
+                  = link_to k, v, target: "_blank"
+  .copyright    
+    .container
+      .row
+        .col-sm-12
+          span 
+            | Copyright © 2018
+            | &nbsp;&nbsp;
+            = link_to "https://bbname.oocitizen.cn"
+            | &nbsp;&nbsp;
+            | All Rights Reserved
+            | &nbsp;&nbsp;
+          span
+            = link_to "京ICP备11008151号", "http://www.miibeian.gov.cn", target: "_blank"

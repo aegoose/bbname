@@ -1,0 +1,24 @@
+.row.user-login
+  .col-md-3
+  .col-md-6.col-sm-12
+    .login-box
+      .login-body
+        h2
+          | 用户登录
+        = simple_form_for(resource, as: resource_name, url: session_path(resource_name), html: {class: "no-turbolinks"}) do |f|
+          = render 'layouts/error_tip'
+          .form-group.has-feedback
+            = f.input :login, required: true, autofocus: true, label: false
+            span.form-control-feedback
+              i.fa.fa-user
+          .form-group.has-feedback
+            = f.input :password, required: true, label: false
+            span.form-control-feedback
+              i.fa.fa-lock
+          -if captcha_require?(resource.login)
+            .form-group
+              = show_simple_captcha unless Rails.env.test?
+          .form-group
+            = f.submit class: 'btn btn-primary btn-block'
+          .form-group.text-right
+            = render "users/shared/links"

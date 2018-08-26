@@ -19,9 +19,9 @@
 //= require chosen-jquery
 //= require lib/app-util
 //= require lib/extend-lib
-//= require adminlte-app
-//= require lib/adminlte-reload
-//= require lib/bootstrap-wysihtml5
-//= require lib/tree-picker
+// require adminlte-app
+// require lib/adminlte-reload
+// require lib/bootstrap-wysihtml5
+// require lib/tree-picker
 // require_tree app
 // require_tree ./admin
