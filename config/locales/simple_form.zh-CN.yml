@@ -126,7 +126,6 @@ zh-CN:
 
 
 # buttons no with simple_form
-
   helpers:
     submit:
       create: "创建%{model}" # global default
@@ -143,3 +142,4 @@ zh-CN:
         edit: '更新'
         send_reset_password: '发送重置密码到我的邮箱'
         update_password: '更新密码'
+        
